@@ -1,0 +1,11 @@
+{
+  "modules": {
+    "@claude-nix-os/module-ui": { "enabled": true },
+    "@claude-nix-os/module-memory": { "enabled": true },
+    "@claude-nix-os/module-n8n": { "enabled": true },
+    "@claude-nix-os/module-ui-passkey-auth": { "enabled": true },
+    "@claude-nix-os/module-railway-tools": { "enabled": true },
+    "@claude-nix-os/module-ui-railway-sidecar": { "enabled": true },
+    "@claude-nix-os/module-file-explorer": { "enabled": true }
+  }
+}

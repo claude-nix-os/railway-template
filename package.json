@@ -1,0 +1,48 @@
+{
+  "name": "claudeos-railway",
+  "version": "3.0.0",
+  "private": true,
+  "description": "ClaudeOS Railway Template - Deploy ClaudeOS on Railway with one click",
+  "scripts": {
+    "dev": "tsx kernel/server.ts",
+    "build": "tsx kernel/build.ts && next build",
+    "start": "NODE_ENV=production tsx kernel/server.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "postinstall": "tsx kernel/build.ts --generate-only"
+  },
+  "dependencies": {
+    "next": "^15.3.2",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "zustand": "^5.0.5",
+    "ws": "^8.18.0",
+    "jose": "^6.0.11",
+    "nanoid": "^5.1.5",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.3.0",
+    "lucide-react": "^0.511.0",
+    "framer-motion": "^12.12.1",
+    "react-resizable-panels": "^2.1.7",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "react-syntax-highlighter": "^15.6.1",
+    "d3": "^7.9.0",
+    "react-force-graph-2d": "^1.25.0",
+    "umap-js": "^1.4.0",
+    "@simplewebauthn/browser": "^13.1.0",
+    "@simplewebauthn/server": "^13.1.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "tsx": "^4.19.4",
+    "vitest": "^3.2.1",
+    "@types/node": "^22.15.21",
+    "@types/react": "^19.1.4",
+    "@types/ws": "^8.18.1",
+    "@types/d3": "^7.4.3",
+    "tailwindcss": "^3.4.17",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.3"
+  }
+}
