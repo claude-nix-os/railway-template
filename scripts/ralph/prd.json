@@ -84,7 +84,7 @@
         "Hand off control button returns control to agent with notification",
         "Sessions auto-render even in headless mode"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "US-007",
