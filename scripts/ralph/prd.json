@@ -57,7 +57,7 @@
         "Nodes are clickable to show memory details",
         "Graph updates when new memories are added"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "US-005",
