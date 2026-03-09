@@ -58,3 +58,127 @@ Started: 2026-03-09 13:10 CDT
 - Need to verify OpenVSCode Server actually loads at production URL after Railway deployment completes
 
 ---
+
+## 2026-03-09 16:45 CDT - US-002
+**Implemented:** Build ClaudeOS Chat Panel as VS Code extension
+
+**What was built:**
+- Complete VS Code extension (claudeos-chat) with 3,718 lines of code across 26 files
+- Extension provides ClaudeOS Chat panel as a webview in VS Code sidebar
+- WebSocket client for real-time communication with kernel server
+- Chat UI with message bubbles, expandable thinking blocks, and tool call displays
+- Markdown rendering with syntax highlighting for code blocks
+- Session management and model selection via toolbar
+- Connection status monitoring with reconnect capability
+- Integrated extension build into Dockerfile and auto-install on container startup
+
+**Subagents used:**
+1. **Explore agent** - Analyzed existing ClaudeOS chat UI (React components, WebSocket hooks, Zustand stores)
+2. **General-purpose agent** - Researched VS Code extension APIs, webview patterns, and best practices
+3. **General-purpose agent** - Created extension manifest (package.json) and configuration files
+4. **General-purpose agent** - Ported Zustand stores (session-store.ts, ui-store.ts) from React UI
+5. **General-purpose agent** - Created types.ts with all session, message, and WebSocket event types
+6. **General-purpose agent** - Built WebSocketClient class with EventEmitter pattern and reconnection logic
+7. **General-purpose agent** - Created ChatViewProvider implementing WebviewViewProvider interface
+8. **General-purpose agent** - Built extension.ts entry point with commands and status bar integration
+9. **General-purpose agent** - Created webview UI (main.ts, styles.css) with vanilla TypeScript
+10. **General-purpose agent** - Updated Dockerfile to build and install extension
+11. **General-purpose agent** - Added extension dependencies to package.json
+
+**Files created:**
+- `extensions/claudeos-chat/` - Complete VS Code extension directory
+- Extension manifest: package.json, tsconfig.json, esbuild.js, .vscodeignore
+- Source files:
+  - src/extension.ts - Extension activation and command registration
+  - src/chatViewProvider.ts - Webview provider with WebSocket integration
+  - src/types.ts - TypeScript type definitions
+  - src/websocket/client.ts - WebSocket client with reconnection logic
+  - src/webview/main.ts - Chat UI implementation (vanilla TypeScript)
+  - src/webview/styles.css - VS Code theme-aware styles
+  - src/webview/types.ts - Webview message types
+  - src/stores/ - Zustand stores ported from React UI
+- Documentation: README.md, STRUCTURE.md, DEVELOPMENT.md, QUICKSTART.md, CHANGELOG.md
+- Updated: Dockerfile, scripts/init-openvscode.sh
+
+**Learnings for future iterations:**
+- **Extension architecture**: VS Code extensions use webviews for custom UI, with message passing for communication
+- **WebSocket proxy pattern**: Extension host manages WebSocket connection (Node.js), forwards events to webview
+- **State management**: Zustand stores are framework-agnostic and work in both React and vanilla TypeScript
+- **Build pipeline**: esbuild bundles both extension code (extension.js) and webview code (webview.js) separately
+- **VS Code installation**: Use `openvscode-server --install-extension` CLI to install from directory
+- **CSP requirements**: Webviews need strict Content Security Policy with nonce-based script execution
+- **Theme integration**: Use VS Code CSS variables (--vscode-*) for automatic light/dark theme support
+- **Vanilla TypeScript**: For webviews, vanilla TypeScript is lighter than React (8KB vs 40KB+ bundle)
+- **Extension lifecycle**: Extensions activate on view creation, must handle disposal properly
+
+**Next steps:**
+- US-003: Build Session List sidebar with live status indicators
+- Need to verify extension loads in OpenVSCode Server after Railway deployment
+- May need to add extension icon (resources/chat-icon.svg) for activity bar branding
+
+---
+## 2026-03-09 18:50 CDT - US-003
+**Implemented:** Build Session List sidebar with live status indicators
+
+**What was built:**
+- Complete VS Code extension (claudeos-sessions) with 2,584 lines of code across 16 files
+- TreeView with two sections: "Active Sessions" and "Archived Sessions"
+- Live status indicators: spinning icon for active sessions, badges for unread messages
+- Context menus with rename, archive, restore, and delete operations
+- WebSocket client for real-time session updates from kernel server
+- Zombie session detection: automatically flags sessions stuck in ACTIVE state for 5+ minutes
+- Graduated opacity based on recency (via description field and time-ago formatting)
+- Click-to-open functionality that opens session in chat panel
+- Status bar integration showing WebSocket connection status
+
+**Subagents used:**
+1. **Explore agent** - Analyzed existing session management architecture (session stores, WebSocket events, kernel API)
+2. **General-purpose agent** - Researched VS Code TreeView API patterns and best practices
+3. **General-purpose agent** - Created extension structure (package.json, tsconfig, esbuild, README)
+4. **General-purpose agent** - Implemented TreeDataProvider with SessionTreeItem, SectionTreeItem classes
+5. **General-purpose agent** - Built SessionWebSocketClient with EventEmitter pattern and auto-reconnect
+6. **General-purpose agent** - Implemented command handlers (open, rename, archive, restore, delete, refresh)
+7. **General-purpose agent** - Wired components together in extension.ts, added zombie detection
+8. **General-purpose agent** - Added missing kernel API routes (renameSession, restoreSession)
+
+**Files created:**
+- `extensions/claudeos-sessions/` - Complete VS Code extension directory
+- Extension manifest: package.json, tsconfig.json, esbuild.js, .vscodeignore, README.md
+- Source files:
+  - src/extension.ts - Extension activation with WebSocket setup and zombie detection timer
+  - src/types.ts - TypeScript type definitions (Session, SessionStatus, etc.)
+  - src/sessionTree/SessionTreeProvider.ts - TreeDataProvider implementation
+  - src/sessionTree/SessionTreeItem.ts - TreeItem with status icons and zombie detection
+  - src/sessionTree/SectionTreeItem.ts - Collapsible section headers
+  - src/sessionTree/index.ts - Barrel export
+  - src/services/SessionWebSocketClient.ts - WebSocket client with auto-reconnect
+  - src/services/ZombieDetector.ts - Zombie session detection service
+  - src/commands/sessionCommands.ts - Command handlers for all session operations
+
+**Files modified:**
+- `kernel/server.ts` - Added renameSession() and restoreSession() functions, WebSocket handlers
+- `Dockerfile` - Added build step for claudeos-sessions extension
+- `scripts/init-openvscode.sh` - Added installation of claudeos-sessions extension
+- `scripts/ralph/prd.json` - Marked US-003 as passing
+
+**Learnings for future iterations:**
+- **TreeView architecture**: VS Code TreeViews use TreeDataProvider pattern with EventEmitter for updates
+- **Composite contextValue**: Use dot-notation like "session.active.ACTIVE" for granular menu filtering with regex
+- **ThemeIcon animations**: Use `~spin` suffix (e.g., `loading~spin`) for animated icons
+- **WebSocket in extensions**: Extension host (Node.js) handles WebSocket, forwards events to webview if needed
+- **Zombie detection pattern**: Timer-based polling works well for detecting stale sessions
+- **Status bar integration**: StatusBarItem provides visual feedback for background service status
+- **Context menu groups**: Use regex in "when" clauses (`viewItem =~ /pattern/`) for flexible menu filtering
+- **Build warnings**: esbuild warns about WebSocket import pattern, but works correctly at runtime
+- **Extension dependencies**: Both extensions share same view container (`claudeos-chat-container`)
+- **Real-time updates**: EventEmitter pattern enables efficient incremental tree updates
+
+**Next steps:**
+- US-004: Build Memory Graph visualizer extension (D3.js/react-force-graph)
+- US-005: Build n8n workflow panel as VS Code extension
+- Need to verify claudeos-sessions extension loads correctly after Railway deployment
+- Consider adding visual indicators for sessions requiring input (question mark badge)
+- May want to implement custom theming for zombie sessions (red dot overlay)
+
+---
+

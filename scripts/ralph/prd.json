@@ -29,7 +29,7 @@
         "The chat panel can be opened as a full editor tab",
         "Notification badges appear when user input is required (AskUserQuestion)"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "US-003",
@@ -44,7 +44,7 @@
         "Archived section is collapsible with zombie sessions marked",
         "Clicking a session opens its chat panel in the editor area"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "US-004",
