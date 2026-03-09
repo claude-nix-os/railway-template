@@ -1,15 +1,27 @@
 import * as vscode from 'vscode';
 import { ChatViewProvider } from './chatViewProvider';
 import { ConnectionStatus } from './types';
+import { commandRegistry, registerBuiltinCommands } from './commands';
 
 let chatViewProvider: ChatViewProvider | undefined;
 let statusBarItem: vscode.StatusBarItem | undefined;
+let commandCount = 0;
 
 /**
  * Extension activation entry point
  */
 export function activate(context: vscode.ExtensionContext) {
   console.log('ClaudeOS Chat extension is now active');
+
+  // Register slash commands early in activation
+  try {
+    const registeredCommands = registerBuiltinCommands(commandRegistry);
+    commandCount = commandRegistry.size;
+    console.log(`Registered ${commandCount} slash commands`);
+  } catch (error) {
+    console.error('Failed to register slash commands:', error);
+    vscode.window.showErrorMessage('Failed to register slash commands');
+  }
 
   // Get configuration
   const config = vscode.workspace.getConfiguration('claudeos.chat');
@@ -78,6 +90,73 @@ export function activate(context: vscode.ExtensionContext) {
  * Register extension commands
  */
 function registerCommands(context: vscode.ExtensionContext) {
+  // Command: Execute slash command from Command Palette
+  context.subscriptions.push(
+    vscode.commands.registerCommand('claudeos-chat.executeCommand', async () => {
+      try {
+        // Get all available commands
+        const commands = commandRegistry.getCommands();
+
+        if (commands.length === 0) {
+          vscode.window.showInformationMessage('No slash commands are currently available');
+          return;
+        }
+
+        // Create QuickPick items with command details
+        const quickPickItems = commands.map(cmd => ({
+          label: `/${cmd.name}`,
+          description: cmd.description,
+          detail: cmd.examples ? `Examples: ${cmd.examples.join(', ')}` : undefined,
+          command: cmd,
+        }));
+
+        // Show QuickPick
+        const selected = await vscode.window.showQuickPick(quickPickItems, {
+          title: 'Execute Slash Command',
+          placeHolder: 'Select a command to execute',
+          matchOnDescription: true,
+          matchOnDetail: true,
+        });
+
+        if (!selected) {
+          return;
+        }
+
+        // TODO: Execute the command in the current session
+        // For now, just show info about the selected command
+        const commandInfo = `Command: /${selected.command.name}\nDescription: ${selected.command.description}`;
+
+        if (selected.command.arguments && selected.command.arguments.length > 0) {
+          // Command has arguments - show input box to collect them
+          const argNames = selected.command.arguments.map(arg =>
+            arg.required ? `<${arg.name}>` : `[${arg.name}]`
+          ).join(' ');
+
+          const input = await vscode.window.showInputBox({
+            prompt: `Enter arguments for /${selected.command.name}`,
+            placeHolder: argNames,
+            value: selected.command.examples ? selected.command.examples[0].replace(`/${selected.command.name} `, '') : '',
+          });
+
+          if (input !== undefined) {
+            vscode.window.showInformationMessage(
+              `Would execute: /${selected.command.name} ${input}\n(Actual execution will be implemented when chat view is integrated)`
+            );
+          }
+        } else {
+          // No arguments - execute directly
+          vscode.window.showInformationMessage(
+            `Would execute: /${selected.command.name}\n(Actual execution will be implemented when chat view is integrated)`
+          );
+        }
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        vscode.window.showErrorMessage(`Failed to execute command: ${errorMessage}`);
+        console.error('Error executing slash command:', error);
+      }
+    })
+  );
+
   // Command: Open chat in editor panel
   context.subscriptions.push(
     vscode.commands.registerCommand('claudeos.openChatInEditor', async () => {
@@ -184,24 +263,26 @@ function updateStatusBar(status: ConnectionStatus) {
     return;
   }
 
+  const commandSuffix = commandCount > 0 ? ` (${commandCount} commands)` : '';
+
   switch (status) {
     case 'connected':
-      statusBarItem.text = '$(check) ClaudeOS';
+      statusBarItem.text = `$(check) ClaudeOS${commandSuffix}`;
       statusBarItem.tooltip = 'ClaudeOS Chat: Connected';
       statusBarItem.backgroundColor = undefined;
       break;
     case 'connecting':
-      statusBarItem.text = '$(sync~spin) ClaudeOS';
+      statusBarItem.text = `$(sync~spin) ClaudeOS${commandSuffix}`;
       statusBarItem.tooltip = 'ClaudeOS Chat: Connecting...';
       statusBarItem.backgroundColor = undefined;
       break;
     case 'disconnected':
-      statusBarItem.text = '$(debug-disconnect) ClaudeOS';
+      statusBarItem.text = `$(debug-disconnect) ClaudeOS${commandSuffix}`;
       statusBarItem.tooltip = 'ClaudeOS Chat: Disconnected';
       statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
       break;
     case 'error':
-      statusBarItem.text = '$(error) ClaudeOS';
+      statusBarItem.text = `$(error) ClaudeOS${commandSuffix}`;
       statusBarItem.tooltip = 'ClaudeOS Chat: Connection Error';
       statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.errorBackground');
       break;

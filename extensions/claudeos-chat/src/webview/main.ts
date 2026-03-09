@@ -10,6 +10,7 @@ import type {
   UISession,
   ExtensionToWebviewMessage,
   WebviewToExtensionMessage,
+  AutocompleteCommand,
 } from './types';
 
 /* ------------------------------------------------------------------ */
@@ -23,6 +24,13 @@ const vscode = acquireVsCodeApi<AppState>();
 /*  State Management                                                  */
 /* ------------------------------------------------------------------ */
 
+interface AutocompleteState {
+  isOpen: boolean;
+  commands: AutocompleteCommand[];
+  selectedIndex: number;
+  query: string;
+}
+
 let state: AppState = {
   connectionStatus: 'connecting',
   sessions: [],
@@ -31,6 +39,13 @@ let state: AppState = {
   inputValue: '',
   isLoading: false,
   error: null,
+};
+
+let autocompleteState: AutocompleteState = {
+  isOpen: false,
+  commands: [],
+  selectedIndex: 0,
+  query: '',
 };
 
 // Restore previous state if available
@@ -64,6 +79,10 @@ window.addEventListener('message', (event) => {
 
     case 'wsEvent':
       handleWSEvent(message.data);
+      break;
+
+    case 'autocompleteResults':
+      handleAutocompleteResults(message.data.commands);
       break;
   }
 });
@@ -290,6 +309,16 @@ function handleError(error: any): void {
   });
 }
 
+function handleAutocompleteResults(commands: AutocompleteCommand[]): void {
+  autocompleteState = {
+    ...autocompleteState,
+    commands,
+    isOpen: commands.length > 0,
+    selectedIndex: 0,
+  };
+  renderAutocomplete();
+}
+
 /* ------------------------------------------------------------------ */
 /*  User Actions                                                      */
 /* ------------------------------------------------------------------ */
@@ -358,6 +387,76 @@ function toggleToolCall(messageId: string, toolCallId: string): void {
 function reconnect(): void {
   postMessage({ type: 'reconnect' });
   updateState({ connectionStatus: 'connecting' });
+}
+
+function requestAutocomplete(query: string): void {
+  autocompleteState.query = query;
+  postMessage({ type: 'requestAutocomplete', query });
+}
+
+function closeAutocomplete(): void {
+  autocompleteState = {
+    isOpen: false,
+    commands: [],
+    selectedIndex: 0,
+    query: '',
+  };
+  renderAutocomplete();
+}
+
+function selectAutocompleteCommand(command: AutocompleteCommand): void {
+  const input = document.getElementById('message-input') as HTMLTextAreaElement;
+  if (!input) return;
+
+  // Replace the /command part with the selected command
+  const value = input.value;
+  const slashIndex = value.lastIndexOf('/');
+
+  if (slashIndex !== -1) {
+    const beforeSlash = value.substring(0, slashIndex);
+    const newValue = beforeSlash + '/' + command.name + (command.requiresArgs ? ' ' : '');
+
+    updateState({ inputValue: newValue });
+
+    // Refocus and set cursor position
+    setTimeout(() => {
+      input.focus();
+      input.setSelectionRange(newValue.length, newValue.length);
+    }, 0);
+  }
+
+  closeAutocomplete();
+}
+
+function navigateAutocomplete(direction: 'up' | 'down'): void {
+  if (!autocompleteState.isOpen || autocompleteState.commands.length === 0) return;
+
+  const maxIndex = autocompleteState.commands.length - 1;
+  let newIndex = autocompleteState.selectedIndex;
+
+  if (direction === 'up') {
+    newIndex = newIndex > 0 ? newIndex - 1 : maxIndex;
+  } else {
+    newIndex = newIndex < maxIndex ? newIndex + 1 : 0;
+  }
+
+  autocompleteState.selectedIndex = newIndex;
+  renderAutocomplete();
+
+  // Scroll selected item into view
+  const selectedItem = document.querySelector('.autocomplete-item--selected');
+  if (selectedItem) {
+    selectedItem.scrollIntoView({ block: 'nearest' });
+  }
+}
+
+function selectCurrentAutocompleteCommand(): void {
+  if (!autocompleteState.isOpen || autocompleteState.commands.length === 0) return;
+
+  const command = autocompleteState.commands[autocompleteState.selectedIndex];
+  if (command) {
+    selectAutocompleteCommand(command);
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -519,13 +618,16 @@ function renderInputArea(): string {
 
   return `
     <div class="input-area">
-      <textarea
-        id="message-input"
-        class="message-input"
-        placeholder="${disabled ? 'Connect to a session to send messages' : 'Type a message...'}"
-        rows="3"
-        ${disabled ? 'disabled' : ''}
-      >${escapeHtml(state.inputValue)}</textarea>
+      <div class="input-container">
+        <textarea
+          id="message-input"
+          class="message-input"
+          placeholder="${disabled ? 'Connect to a session to send messages' : 'Type a message...'}"
+          rows="3"
+          ${disabled ? 'disabled' : ''}
+        >${escapeHtml(state.inputValue)}</textarea>
+        <div id="autocomplete-container"></div>
+      </div>
       <button
         id="send-btn"
         class="send-btn"
@@ -533,6 +635,57 @@ function renderInputArea(): string {
       >Send</button>
     </div>
   `;
+}
+
+function renderAutocomplete(): void {
+  const container = document.getElementById('autocomplete-container');
+  if (!container) return;
+
+  if (!autocompleteState.isOpen || autocompleteState.commands.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+
+  const commands = autocompleteState.commands;
+  const selectedIndex = autocompleteState.selectedIndex;
+
+  container.innerHTML = `
+    <div class="autocomplete-dropdown">
+      <div class="autocomplete-header">
+        <span class="autocomplete-hint">↑↓ Navigate</span>
+        <span class="autocomplete-hint">↵ Select</span>
+        <span class="autocomplete-hint">Esc Close</span>
+      </div>
+      <div class="autocomplete-list">
+        ${commands.map((cmd, index) => `
+          <div
+            class="autocomplete-item ${index === selectedIndex ? 'autocomplete-item--selected' : ''}"
+            data-index="${index}"
+          >
+            <div class="autocomplete-item-header">
+              <span class="autocomplete-item-name">/${escapeHtml(cmd.name)}</span>
+              <span class="autocomplete-item-category">${escapeHtml(cmd.category)}</span>
+            </div>
+            <div class="autocomplete-item-description">
+              ${escapeHtml(cmd.description)}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  // Attach click handlers to autocomplete items
+  const items = container.querySelectorAll('.autocomplete-item');
+  items.forEach((item) => {
+    item.addEventListener('click', () => {
+      const index = parseInt((item as HTMLElement).dataset.index || '0', 10);
+      const command = commands[index];
+      if (command) {
+        selectAutocompleteCommand(command);
+      }
+    });
+  });
 }
 
 /* ------------------------------------------------------------------ */
@@ -554,11 +707,64 @@ function attachEventListeners(): void {
   if (messageInput) {
     messageInput.addEventListener('input', (e) => {
       const target = e.target as HTMLTextAreaElement;
-      updateState({ inputValue: target.value });
+      const value = target.value;
+      updateState({ inputValue: value });
+
+      // Detect slash command
+      const cursorPos = target.selectionStart;
+      const textBeforeCursor = value.substring(0, cursorPos);
+      const lastSlashIndex = textBeforeCursor.lastIndexOf('/');
+
+      // Check if we're typing a slash command
+      if (lastSlashIndex !== -1) {
+        // Make sure the slash is at the start or after whitespace
+        const charBeforeSlash = lastSlashIndex === 0 ? ' ' : textBeforeCursor[lastSlashIndex - 1];
+        if (charBeforeSlash === ' ' || charBeforeSlash === '\n' || lastSlashIndex === 0) {
+          const textAfterSlash = textBeforeCursor.substring(lastSlashIndex + 1);
+          // Make sure there's no whitespace after the slash (we're still typing the command)
+          if (!textAfterSlash.includes(' ') && !textAfterSlash.includes('\n')) {
+            requestAutocomplete(textAfterSlash);
+            return;
+          }
+        }
+      }
+
+      // Close autocomplete if conditions aren't met
+      if (autocompleteState.isOpen) {
+        closeAutocomplete();
+      }
     });
 
     // Send on Ctrl+Enter or Cmd+Enter
     messageInput.addEventListener('keydown', (e) => {
+      // Handle autocomplete navigation
+      if (autocompleteState.isOpen) {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          navigateAutocomplete('down');
+          return;
+        }
+        if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          navigateAutocomplete('up');
+          return;
+        }
+        if (e.key === 'Enter' || e.key === 'Tab') {
+          // Only intercept if not using modifier keys for send
+          if (!e.ctrlKey && !e.metaKey) {
+            e.preventDefault();
+            selectCurrentAutocompleteCommand();
+            return;
+          }
+        }
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          closeAutocomplete();
+          return;
+        }
+      }
+
+      // Send on Ctrl+Enter or Cmd+Enter
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
         e.preventDefault();
         sendMessage();

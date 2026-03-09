@@ -1,6 +1,9 @@
 import * as vscode from 'vscode';
 import { WebSocketClient } from './websocket/client';
 import { WSEvent, ConnectionStatus } from './types';
+import { commandRegistry, parseCommandInput, mapArgumentsToDefinition } from './commands';
+import { registerBuiltinCommands } from './commands/builtinCommands';
+import { CommandContext } from './commands/types';
 
 /**
  * WebviewViewProvider for the ClaudeOS Chat panel
@@ -17,6 +20,21 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     wsUrl: string
   ) {
     this.wsUrl = wsUrl;
+
+    // Initialize slash command system
+    this.initializeCommands();
+  }
+
+  /**
+   * Initialize the slash command system
+   */
+  private initializeCommands(): void {
+    try {
+      registerBuiltinCommands(commandRegistry);
+      console.log('Slash commands initialized successfully');
+    } catch (error) {
+      console.error('Failed to initialize slash commands:', error);
+    }
   }
 
   /**
@@ -105,7 +123,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
   /**
    * Handle messages from the webview
    */
-  private handleWebviewMessage(message: any): void {
+  private async handleWebviewMessage(message: any): Promise<void> {
     if (!this.wsClient) {
       console.warn('WebSocket client not initialized');
       return;
@@ -113,9 +131,16 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
 
     switch (message.type) {
       case 'sendMessage':
-        // Send a chat message
+        // Check if message is a slash command
         if (message.sessionId && message.content) {
-          this.wsClient.sendMessage(message.sessionId, message.content);
+          const content = message.content.trim();
+          if (content.startsWith('/')) {
+            // Handle as slash command
+            await this.handleSlashCommand(message.sessionId, content);
+          } else {
+            // Send as regular message
+            this.wsClient.sendMessage(message.sessionId, message.content);
+          }
         }
         break;
 
@@ -143,9 +168,155 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         this.wsClient.connect();
         break;
 
+      case 'requestAutocomplete':
+        // Handle autocomplete request
+        await this.handleAutocomplete(message.query);
+        break;
+
+      case 'executeSlashCommand':
+        // Handle explicit slash command execution
+        if (message.sessionId && message.command) {
+          await this.handleSlashCommand(message.sessionId, message.command);
+        }
+        break;
+
       default:
         console.warn(`Unknown message type from webview: ${message.type}`);
     }
+  }
+
+  /**
+   * Handle autocomplete request from webview
+   */
+  private async handleAutocomplete(query: string): Promise<void> {
+    try {
+      // Remove leading slash if present
+      const cleanQuery = query.startsWith('/') ? query.slice(1) : query;
+
+      // Get autocomplete results from command registry
+      const commands = commandRegistry.autocomplete(cleanQuery, 25);
+
+      // Send results back to webview
+      this.postMessageToWebview({
+        type: 'autocompleteResults',
+        data: commands,
+      });
+    } catch (error) {
+      console.error('Error handling autocomplete:', error);
+      this.postMessageToWebview({
+        type: 'autocompleteResults',
+        data: [],
+      });
+    }
+  }
+
+  /**
+   * Handle slash command execution
+   */
+  private async handleSlashCommand(sessionId: string, commandInput: string): Promise<void> {
+    try {
+      // Parse the command input
+      const parsed = parseCommandInput(commandInput);
+
+      if (!parsed.command) {
+        this.sendErrorToWebview('Invalid command format');
+        return;
+      }
+
+      // Check if command exists
+      if (!commandRegistry.hasCommand(parsed.command)) {
+        this.sendErrorToWebview(`Command '/${parsed.command}' not found. Type /help to see available commands.`);
+        return;
+      }
+
+      // Get the command definition
+      const commandDef = commandRegistry.getCommand(parsed.command);
+
+      if (!commandDef) {
+        this.sendErrorToWebview(`Command '/${parsed.command}' not found`);
+        return;
+      }
+
+      // Map arguments to command definition
+      let mappedArgs: Record<string, string | number | boolean>;
+      try {
+        // Create a temporary command object for mapArgumentsToDefinition
+        const tempCommand = {
+          name: commandDef.name,
+          description: commandDef.description,
+          args: commandDef.arguments?.map(arg => ({
+            name: arg.name,
+            type: arg.type as 'string' | 'number' | 'boolean',
+            required: arg.required,
+            description: arg.description,
+            default: arg.default,
+          })),
+          execute: async () => {},
+        };
+
+        mappedArgs = mapArgumentsToDefinition(tempCommand, parsed.args);
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        this.sendErrorToWebview(`Invalid arguments: ${errorMessage}`);
+        return;
+      }
+
+      // Create command context
+      const context: CommandContext = {
+        sessionId,
+        args: mappedArgs,
+        rawInput: commandInput,
+        commandName: parsed.command,
+        timestamp: new Date().toISOString(),
+      };
+
+      // Execute the command
+      const result = await commandRegistry.execute(parsed.command, context);
+
+      // Send result back to webview
+      if (!result.silent) {
+        this.postMessageToWebview({
+          type: 'commandResult',
+          data: {
+            success: result.success,
+            message: result.message,
+            data: result.data,
+            error: result.error,
+          },
+        });
+      }
+
+      // If command was successful and has a message, also send as system message
+      if (result.success && result.message) {
+        this.postMessageToWebview({
+          type: 'systemMessage',
+          data: {
+            message: result.message,
+            timestamp: new Date().toISOString(),
+          },
+        });
+      }
+
+    } catch (error) {
+      console.error('Error executing slash command:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      this.sendErrorToWebview(`Command execution failed: ${errorMessage}`);
+    }
+  }
+
+  /**
+   * Send error message to webview
+   */
+  private sendErrorToWebview(message: string): void {
+    this.postMessageToWebview({
+      type: 'commandResult',
+      data: {
+        success: false,
+        error: {
+          message,
+        },
+      },
+    });
   }
 
   /**

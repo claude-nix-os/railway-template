@@ -433,6 +433,11 @@ body {
   flex-shrink: 0;
 }
 
+.input-container {
+  flex: 1;
+  position: relative;
+}
+
 .message-input {
   flex: 1;
   padding: 8px 12px;
@@ -481,6 +486,132 @@ body {
 .send-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Autocomplete Dropdown                                             */
+/* ------------------------------------------------------------------ */
+
+#autocomplete-container {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  margin-bottom: 4px;
+  z-index: 1000;
+}
+
+.autocomplete-dropdown {
+  background-color: var(--vscode-dropdown-background);
+  border: 1px solid var(--vscode-dropdown-border);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  max-height: 300px;
+  display: flex;
+  flex-direction: column;
+}
+
+.autocomplete-header {
+  display: flex;
+  gap: 12px;
+  padding: 6px 10px;
+  background-color: var(--vscode-sideBarSectionHeader-background);
+  border-bottom: 1px solid var(--vscode-sideBarSectionHeader-border);
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+  flex-shrink: 0;
+}
+
+.autocomplete-hint {
+  white-space: nowrap;
+}
+
+.autocomplete-list {
+  overflow-y: auto;
+  max-height: 260px;
+}
+
+.autocomplete-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.autocomplete-list::-webkit-scrollbar-track {
+  background: var(--vscode-dropdown-background);
+}
+
+.autocomplete-list::-webkit-scrollbar-thumb {
+  background: var(--vscode-scrollbarSlider-background);
+  border-radius: 4px;
+}
+
+.autocomplete-list::-webkit-scrollbar-thumb:hover {
+  background: var(--vscode-scrollbarSlider-hoverBackground);
+}
+
+.autocomplete-item {
+  padding: 8px 10px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--vscode-dropdown-border);
+  transition: background-color 0.1s ease;
+}
+
+.autocomplete-item:last-child {
+  border-bottom: none;
+}
+
+.autocomplete-item:hover {
+  background-color: var(--vscode-list-hoverBackground);
+}
+
+.autocomplete-item--selected {
+  background-color: var(--vscode-list-activeSelectionBackground);
+  color: var(--vscode-list-activeSelectionForeground);
+}
+
+.autocomplete-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+  gap: 8px;
+}
+
+.autocomplete-item-name {
+  font-family: var(--vscode-editor-font-family);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--vscode-textLink-foreground);
+}
+
+.autocomplete-item--selected .autocomplete-item-name {
+  color: var(--vscode-list-activeSelectionForeground);
+}
+
+.autocomplete-item-category {
+  font-size: 11px;
+  padding: 2px 6px;
+  background-color: var(--vscode-badge-background);
+  color: var(--vscode-badge-foreground);
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+.autocomplete-item--selected .autocomplete-item-category {
+  background-color: var(--vscode-list-activeSelectionForeground);
+  color: var(--vscode-list-activeSelectionBackground);
+  opacity: 0.8;
+}
+
+.autocomplete-item-description {
+  font-size: 12px;
+  color: var(--vscode-descriptionForeground);
+  line-height: 1.4;
+}
+
+.autocomplete-item--selected .autocomplete-item-description {
+  color: var(--vscode-list-activeSelectionForeground);
+  opacity: 0.9;
 }
 
 /* ------------------------------------------------------------------ */

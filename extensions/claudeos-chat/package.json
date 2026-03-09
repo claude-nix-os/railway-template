@@ -58,6 +58,11 @@
     },
     "commands": [
       {
+        "command": "claudeos-chat.executeCommand",
+        "title": "ClaudeOS: Execute Slash Command",
+        "category": "ClaudeOS"
+      },
+      {
         "command": "claudeos.openChatInEditor",
         "title": "ClaudeOS: Open Chat in Editor",
         "category": "ClaudeOS"

@@ -11,7 +11,8 @@ export type WebviewToExtensionMessageType =
   | 'subscribe'
   | 'unsubscribe'
   | 'requestSessions'
-  | 'reconnect';
+  | 'reconnect'
+  | 'requestAutocomplete';
 
 export interface SendMessageMessage {
   type: 'sendMessage';
@@ -37,18 +38,24 @@ export interface ReconnectMessage {
   type: 'reconnect';
 }
 
+export interface RequestAutocompleteMessage {
+  type: 'requestAutocomplete';
+  query: string;
+}
+
 export type WebviewToExtensionMessage =
   | SendMessageMessage
   | SubscribeMessage
   | UnsubscribeMessage
   | RequestSessionsMessage
-  | ReconnectMessage;
+  | ReconnectMessage
+  | RequestAutocompleteMessage;
 
 /* ------------------------------------------------------------------ */
 /*  Messages from Extension to Webview                                */
 /* ------------------------------------------------------------------ */
 
-export type ExtensionToWebviewMessageType = 'connectionStatus' | 'wsEvent';
+export type ExtensionToWebviewMessageType = 'connectionStatus' | 'wsEvent' | 'autocompleteResults';
 
 export interface ConnectionStatusMessage {
   type: 'connectionStatus';
@@ -62,9 +69,24 @@ export interface WSEventMessage {
   data: any; // WSEvent from parent types.ts
 }
 
+export interface AutocompleteCommand {
+  name: string;
+  category: string;
+  description: string;
+  requiresArgs: boolean;
+}
+
+export interface AutocompleteResultsMessage {
+  type: 'autocompleteResults';
+  data: {
+    commands: AutocompleteCommand[];
+  };
+}
+
 export type ExtensionToWebviewMessage =
   | ConnectionStatusMessage
-  | WSEventMessage;
+  | WSEventMessage
+  | AutocompleteResultsMessage;
 
 /* ------------------------------------------------------------------ */
 /*  UI State Types                                                    */
