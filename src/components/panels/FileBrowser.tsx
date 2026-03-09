@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import type { DirectoryEntry, FileResponse } from '@/types/file-explorer';
-import { getFileIcon, getLanguage } from '@/lib/file-utils';
+import { getFileIcon, getLanguage } from '@/lib/file-utils.client';
 
 interface TreeNode {
   name: string;

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import type { DirectoryEntry } from '@/types/file-explorer';
-import { getFileIcon } from '@/lib/file-utils';
+import { getFileIcon } from '@/lib/file-utils.client';
 
 const ICON_MAP: Record<string, string> = {
   directory: '\uD83D\uDCC1',
