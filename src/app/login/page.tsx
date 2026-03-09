@@ -8,7 +8,8 @@ export default function LoginPage() {
   const [token, setToken] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { setJwtToken, isAuthenticated } = useUIStore();
+  const setJwtToken = useUIStore((s) => s.setJwtToken);
+  const isAuthenticated = useUIStore((s) => s.isAuthenticated);
   const router = useRouter();
 
   useEffect(() => {
