@@ -1,0 +1,29 @@
+{
+  "name": "@claude-nix-os/module-browser",
+  "version": "1.0.0",
+  "description": "Playwright-based browser automation with screenshot capture and interaction",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "playwright": "^1.41.0",
+    "playwright-extra": "^4.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.1"
+  },
+  "keywords": [
+    "claudeos",
+    "browser",
+    "automation",
+    "playwright",
+    "screenshots"
+  ],
+  "author": "",
+  "license": "MIT"
+}

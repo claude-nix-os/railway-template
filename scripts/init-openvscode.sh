@@ -55,4 +55,16 @@ else
   echo "[ClaudeOS] Warning: ClaudeOS n8n extension not found at /app/extensions/claudeos-n8n"
 fi
 
+# Install ClaudeOS Browser Sessions extension
+if [ -d /app/extensions/claudeos-browser-sessions ]; then
+  echo "[ClaudeOS] Installing ClaudeOS Browser Sessions extension..."
+  /opt/openvscode-server/bin/openvscode-server --install-extension /app/extensions/claudeos-browser-sessions --extensions-dir /data/.openvscode/extensions
+  echo "[ClaudeOS] ClaudeOS Browser Sessions extension installed successfully"
+else
+  echo "[ClaudeOS] Warning: ClaudeOS Browser Sessions extension not found at /app/extensions/claudeos-browser-sessions"
+fi
+
+# Create browser sessions data directory
+mkdir -p /data/browser-sessions
+
 echo "[ClaudeOS] OpenVSCode Server initialization complete"

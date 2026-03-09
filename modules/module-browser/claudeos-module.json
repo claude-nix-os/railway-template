@@ -1,0 +1,11 @@
+{
+  "name": "@claude-nix-os/module-browser",
+  "version": "1.0.0",
+  "description": "Playwright-based browser automation with screenshot capture and interaction",
+  "author": "",
+  "license": "MIT",
+  "repository": "https://github.com/claude-nix-os/module-browser",
+  "requires": [],
+  "optional": ["@claude-nix-os/module-ui"],
+  "main": "src/index.ts"
+}

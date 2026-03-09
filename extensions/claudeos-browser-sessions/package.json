@@ -1,0 +1,114 @@
+{
+  "name": "claudeos-browser-sessions",
+  "displayName": "ClaudeOS Browser Sessions",
+  "description": "GUI Browser Sessions panel with live screenshot updates",
+  "version": "1.0.0",
+  "publisher": "claudeos",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onView:claudeos-browser-sessions.browserView"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "views": {
+      "claudeos-chat-container": [
+        {
+          "type": "webview",
+          "id": "claudeos-browser-sessions.browserView",
+          "name": "Browser Sessions",
+          "contextualTitle": "ClaudeOS Browser Sessions"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "claudeos-browser-sessions.refresh",
+        "title": "Refresh Browser Sessions",
+        "category": "ClaudeOS Browser",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "claudeos-browser-sessions.newSession",
+        "title": "New Browser Session",
+        "category": "ClaudeOS Browser",
+        "icon": "$(add)"
+      },
+      {
+        "command": "claudeos-browser-sessions.takeControl",
+        "title": "Take Control of Browser Session",
+        "category": "ClaudeOS Browser",
+        "icon": "$(debug-start)"
+      },
+      {
+        "command": "claudeos-browser-sessions.handOffControl",
+        "title": "Hand Off Control",
+        "category": "ClaudeOS Browser",
+        "icon": "$(debug-stop)"
+      },
+      {
+        "command": "claudeos-browser-sessions.exportSession",
+        "title": "Export Browser Session",
+        "category": "ClaudeOS Browser",
+        "icon": "$(export)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "claudeos-browser-sessions.refresh",
+          "when": "view == claudeos-browser-sessions.browserView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "claudeos-browser-sessions.newSession",
+          "when": "view == claudeos-browser-sessions.browserView",
+          "group": "navigation@2"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "ClaudeOS Browser Sessions",
+      "properties": {
+        "claudeos.browser.apiUrl": {
+          "type": "string",
+          "default": "http://localhost:3000/api/browser",
+          "description": "Browser API URL"
+        },
+        "claudeos.browser.wsUrl": {
+          "type": "string",
+          "default": "ws://localhost:3000/ws",
+          "description": "WebSocket URL for live updates"
+        },
+        "claudeos.browser.autoRefresh": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically refresh browser sessions on changes"
+        },
+        "claudeos.browser.thumbnailRefreshInterval": {
+          "type": "number",
+          "default": 2000,
+          "description": "Interval for refreshing thumbnails (ms)"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "node esbuild.js",
+    "build": "node esbuild.js",
+    "watch": "node esbuild.js --watch",
+    "package": "vsce package",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.80.0",
+    "esbuild": "^0.24.0",
+    "typescript": "^5.7.0"
+  }
+}

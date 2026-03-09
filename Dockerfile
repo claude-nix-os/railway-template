@@ -32,6 +32,11 @@ WORKDIR /app/extensions/claudeos-n8n
 RUN npm ci
 RUN npm run build
 
+# Build ClaudeOS Browser Sessions extension
+WORKDIR /app/extensions/claudeos-browser-sessions
+RUN npm ci
+RUN npm run build
+
 # ── Stage 2: Production (slim - just Node.js) ─────────────────
 FROM node:22-slim
 
@@ -39,8 +44,30 @@ ENV NODE_ENV=production
 ENV DATA_DIR=/data
 ENV PORT=3000
 
-# Install tsx globally, openssl for secret generation, supervisor, wget, and tar for downloading OpenVSCode Server
-RUN apt-get update && apt-get install -y openssl supervisor wget tar && rm -rf /var/lib/apt/lists/* \
+# Install system dependencies including Playwright dependencies
+RUN apt-get update && apt-get install -y \
+    openssl \
+    supervisor \
+    wget \
+    tar \
+    # Playwright dependencies
+    libnss3 \
+    libnspr4 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libdrm2 \
+    libdbus-1-3 \
+    libxkbcommon0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxrandr2 \
+    libgbm1 \
+    libasound2 \
+    libpango-1.0-0 \
+    libcairo2 \
+    && rm -rf /var/lib/apt/lists/* \
     && npm install -g tsx
 
 # Download and install OpenVSCode Server (latest stable version)
@@ -69,7 +96,12 @@ COPY --from=builder /app/postcss.config.js /app/postcss.config.js
 COPY --from=builder /app/modules /app/modules
 COPY --from=builder /app/modules.json /app/modules.json
 
-# Copy built ClaudeOS Chat extension
+# Install Playwright browsers (only Chromium for efficiency)
+WORKDIR /app/modules/module-browser
+RUN npm ci && npx playwright install chromium --with-deps
+WORKDIR /app
+
+# Copy built ClaudeOS extensions
 COPY --from=builder /app/extensions /app/extensions
 
 # Copy config
