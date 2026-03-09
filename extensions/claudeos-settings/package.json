@@ -1,0 +1,59 @@
+{
+  "name": "claudeos-settings",
+  "displayName": "ClaudeOS Settings",
+  "description": "ClaudeOS Settings Panel - Configuration and preferences for ClaudeOS",
+  "version": "0.1.0",
+  "publisher": "claude-nix-os",
+  "icon": "icon.png",
+  "engines": {
+    "vscode": "^1.60.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onView:claudeos.settingsView"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "claudeos-settings-container",
+          "title": "ClaudeOS Settings",
+          "icon": "resources/settings-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "claudeos-settings-container": [
+        {
+          "type": "webview",
+          "id": "claudeos.settingsView",
+          "name": "Settings",
+          "contextualTitle": "ClaudeOS Settings"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "claudeos.openSettings",
+        "title": "ClaudeOS: Open Settings",
+        "category": "ClaudeOS"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "node esbuild.js",
+    "watch": "node esbuild.js --watch",
+    "package": "vsce package",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.60.0",
+    "esbuild": "^0.24.0",
+    "typescript": "^5.7.0"
+  }
+}

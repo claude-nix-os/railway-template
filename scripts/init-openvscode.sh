@@ -64,6 +64,15 @@ else
   echo "[ClaudeOS] Warning: ClaudeOS Browser Sessions extension not found at /app/extensions/claudeos-browser-sessions"
 fi
 
+# Install ClaudeOS Settings extension
+if [ -d /app/extensions/claudeos-settings ]; then
+  echo "[ClaudeOS] Installing ClaudeOS Settings extension..."
+  /opt/openvscode-server/bin/openvscode-server --install-extension /app/extensions/claudeos-settings --extensions-dir /data/.openvscode/extensions
+  echo "[ClaudeOS] ClaudeOS Settings extension installed successfully"
+else
+  echo "[ClaudeOS] Warning: ClaudeOS Settings extension not found at /app/extensions/claudeos-settings"
+fi
+
 # Create browser sessions data directory
 mkdir -p /data/browser-sessions
 
