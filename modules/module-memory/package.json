@@ -1,0 +1,48 @@
+{
+  "name": "@claude-nix-os/module-memory",
+  "version": "1.0.0",
+  "description": "ClaudeOS Module - Memory system with SQLite storage, REST API, and visualization",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist/", "claudeos-module.json"],
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc && cp -r src/components dist/ && cp -r src/api dist/",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "test:python": "cd services/mem0 && python3 -m pytest test_server.py -v",
+    "prepublishOnly": "npm run build",
+    "lint": "eslint src/"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/claude-nix-os/module-memory.git"
+  },
+  "dependencies": {
+    "react-force-graph-2d": "^1.25.0",
+    "umap-js": "^1.4.0"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "next": "^15.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "tsx": "^4.19.4",
+    "vitest": "^3.2.1",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@types/react": "^19.1.4",
+    "@types/node": "^22.15.21",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "next": "^15.3.2",
+    "jsdom": "^25.0.1"
+  }
+}

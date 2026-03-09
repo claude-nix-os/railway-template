@@ -1,0 +1,38 @@
+{
+  "name": "@claude-nix-os/module-ui",
+  "version": "1.0.0",
+  "type": "ui",
+  "description": "Core UI module providing the VSCode-inspired web interface for ClaudeOS",
+  "entrypoint": "src/index.ts",
+  "dependencies": [],
+  "provides": {
+    "activityBarItems": [
+      { "id": "home", "position": "top", "priority": 0 },
+      { "id": "files", "position": "top", "priority": 10 },
+      { "id": "git", "position": "top", "priority": 20 },
+      { "id": "archive", "position": "bottom", "priority": 90 },
+      { "id": "settings", "position": "bottom", "priority": 100 }
+    ],
+    "panels": [
+      "home",
+      "chat",
+      "settings",
+      "conversation-list",
+      "execution-graph",
+      "thought-stream",
+      "gui-session"
+    ],
+    "sidebarSections": [
+      "sessions",
+      "files",
+      "git",
+      "archive",
+      "settings"
+    ],
+    "stores": [
+      "panel-store",
+      "session-store",
+      "ui-store"
+    ]
+  }
+}

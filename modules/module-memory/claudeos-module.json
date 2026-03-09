@@ -1,0 +1,11 @@
+{
+  "name": "@claude-nix-os/module-memory",
+  "version": "1.0.0",
+  "description": "Memory system with SQLite storage, REST API, and visualization",
+  "author": "",
+  "license": "MIT",
+  "repository": "https://github.com/claude-nix-os/module-memory",
+  "requires": [],
+  "optional": ["@claude-nix-os/module-ui"],
+  "main": "dist/index.js"
+}

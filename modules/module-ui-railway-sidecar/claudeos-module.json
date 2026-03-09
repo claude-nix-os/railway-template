@@ -1,0 +1,11 @@
+{
+  "name": "@claude-nix-os/module-ui-railway-sidecar",
+  "version": "1.0.0",
+  "description": "Serves the ClaudeOS UI on a Railway public URL with proxy-aware routing",
+  "author": "",
+  "license": "MIT",
+  "repository": "https://github.com/claude-nix-os/module-ui-railway-sidecar",
+  "requires": ["@claude-nix-os/module-ui"],
+  "optional": [],
+  "main": "dist/index.js"
+}

@@ -1,0 +1,11 @@
+{
+  "name": "@claude-nix-os/module-railway-tools",
+  "version": "1.0.0",
+  "description": "Railway management slash commands, UI components, and tooling",
+  "author": "",
+  "license": "MIT",
+  "repository": "https://github.com/claude-nix-os/module-railway-tools",
+  "requires": [],
+  "optional": ["@claude-nix-os/module-ui"],
+  "main": "dist/index.js"
+}
