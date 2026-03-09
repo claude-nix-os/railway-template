@@ -113,7 +113,7 @@
         "New/experimental features are discoverable via the settings UI",
         "Settings panel accessible via activity bar gear icon"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "US-009",
