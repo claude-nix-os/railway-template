@@ -12,49 +12,25 @@ COPY . .
 # Build
 RUN npm run build
 
-# ── Stage 2: Production ──────────────────────────────────────
-FROM ubuntu:22.04
+# ── Stage 2: Production (slim - just Node.js) ─────────────────
+FROM node:22-slim
 
-ENV DEBIAN_FRONTEND=noninteractive
 ENV NODE_ENV=production
 ENV DATA_DIR=/data
 ENV PORT=3000
 
-# System packages
+# Only install essentials: tsx for running the kernel, openssl for secrets
 RUN apt-get update && apt-get install -y \
-    curl wget git openssh-client \
-    python3 python3-pip python3-venv \
-    supervisor \
-    sqlite3 \
-    ca-certificates gnupg \
+    openssl \
     && rm -rf /var/lib/apt/lists/*
 
-# Node.js 22 LTS
-RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
-    && apt-get install -y nodejs \
-    && rm -rf /var/lib/apt/lists/*
+# Install tsx globally
+RUN npm install -g tsx
 
-# Global Node.js tools
-RUN npm install -g tsx n8n
-
-# Install Claude Code
-RUN npm install -g @anthropic-ai/claude-code
-
-# Python dependencies for mem0
-COPY services/mem0/requirements.txt /opt/mem0/requirements.txt
-RUN pip3 install --no-cache-dir -r /opt/mem0/requirements.txt
-
-# Copy mem0 service
-COPY services/mem0/ /opt/mem0/
-
-# Create non-root user (required for Claude Code --dangerously-skip-permissions)
+# Create non-root user
 RUN useradd -m -s /bin/bash claude \
-    && mkdir -p /data /home/claude/.claude /home/claude/.npm-global \
+    && mkdir -p /data /home/claude/.claude \
     && chown -R claude:claude /data /home/claude
-
-# Symlinks for persistent config
-RUN ln -sf /data/.claude /home/claude/.claude \
-    && ln -sf /data/.npm-global /home/claude/.npm-global
 
 # Copy built application
 COPY --from=builder /app/.next /app/.next
@@ -68,11 +44,11 @@ COPY --from=builder /app/tsconfig.json /app/tsconfig.json
 COPY --from=builder /app/tailwind.config.ts /app/tailwind.config.ts
 COPY --from=builder /app/postcss.config.js /app/postcss.config.js
 
-# Copy config and scripts
+# Copy config
 COPY config/ /app/config/
-COPY supervisord.conf /etc/supervisor/conf.d/claudeos.conf
-COPY entrypoint.sh /usr/local/bin/entrypoint
 
+# Copy entrypoint
+COPY entrypoint.sh /usr/local/bin/entrypoint
 RUN chmod +x /usr/local/bin/entrypoint
 
 WORKDIR /app
