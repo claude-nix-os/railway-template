@@ -1,0 +1,111 @@
+{
+  "name": "claudeos-chat",
+  "displayName": "ClaudeOS Chat",
+  "description": "ClaudeOS Chat Panel - Agent chat interface with expandable thought chains and tool calls",
+  "version": "0.1.0",
+  "publisher": "claudeos",
+  "icon": "icon.png",
+  "engines": {
+    "vscode": "^1.60.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onView:claudeos.chatView"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "ClaudeOS Chat",
+      "properties": {
+        "claudeos.chat.wsUrl": {
+          "type": "string",
+          "default": "ws://localhost:3000/ws",
+          "description": "WebSocket URL for the ClaudeOS kernel server"
+        },
+        "claudeos.chat.autoConnect": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically connect to WebSocket on extension activation"
+        },
+        "claudeos.chat.theme": {
+          "type": "string",
+          "enum": ["auto", "light", "dark"],
+          "default": "auto",
+          "description": "Chat panel theme (auto follows VS Code theme)"
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "claudeos-chat-container",
+          "title": "ClaudeOS Chat",
+          "icon": "resources/chat-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "claudeos-chat-container": [
+        {
+          "type": "webview",
+          "id": "claudeos.chatView",
+          "name": "Chat",
+          "contextualTitle": "ClaudeOS Chat"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "claudeos.openChatInEditor",
+        "title": "ClaudeOS: Open Chat in Editor",
+        "category": "ClaudeOS"
+      },
+      {
+        "command": "claudeos.newSession",
+        "title": "ClaudeOS: New Chat Session",
+        "category": "ClaudeOS"
+      },
+      {
+        "command": "claudeos.clearChat",
+        "title": "ClaudeOS: Clear Chat History",
+        "category": "ClaudeOS"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "claudeos.openChatInEditor",
+          "when": "view == claudeos.chatView",
+          "group": "navigation"
+        },
+        {
+          "command": "claudeos.newSession",
+          "when": "view == claudeos.chatView",
+          "group": "navigation"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "node esbuild.js",
+    "watch": "node esbuild.js --watch",
+    "package": "vsce package",
+    "lint": "eslint src --ext ts"
+  },
+  "dependencies": {
+    "ws": "^8.18.0",
+    "zustand": "^5.0.5",
+    "nanoid": "^5.1.5",
+    "marked": "^14.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.60.0",
+    "@types/ws": "^8.5.10",
+    "esbuild": "^0.24.0",
+    "typescript": "^5.7.0"
+  }
+}

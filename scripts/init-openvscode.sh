@@ -19,4 +19,13 @@ fi
 # Ensure proper permissions
 chmod -R 755 /data/.openvscode
 
+# Install ClaudeOS Chat extension
+if [ -d /app/extensions/claudeos-chat ]; then
+  echo "[ClaudeOS] Installing ClaudeOS Chat extension..."
+  /opt/openvscode-server/bin/openvscode-server --install-extension /app/extensions/claudeos-chat --extensions-dir /data/.openvscode/extensions
+  echo "[ClaudeOS] ClaudeOS Chat extension installed successfully"
+else
+  echo "[ClaudeOS] Warning: ClaudeOS Chat extension not found at /app/extensions/claudeos-chat"
+fi
+
 echo "[ClaudeOS] OpenVSCode Server initialization complete"

@@ -12,6 +12,11 @@ COPY . .
 # Build
 RUN npm run build
 
+# Build ClaudeOS Chat extension
+WORKDIR /app/extensions/claudeos-chat
+RUN npm ci
+RUN npm run compile
+
 # ── Stage 2: Production (slim - just Node.js) ─────────────────
 FROM node:22-slim
 
@@ -48,6 +53,9 @@ COPY --from=builder /app/postcss.config.js /app/postcss.config.js
 # Copy modules and module config (VS Code-inspired UI, memory, file explorer, etc.)
 COPY --from=builder /app/modules /app/modules
 COPY --from=builder /app/modules.json /app/modules.json
+
+# Copy built ClaudeOS Chat extension
+COPY --from=builder /app/extensions /app/extensions
 
 # Copy config
 COPY config/ /app/config/
