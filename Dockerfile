@@ -23,29 +23,26 @@ ENV PORT=3000
 RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/* \
     && npm install -g tsx
 
-# Create data directory (writable by node user which exists in node:22-slim)
-RUN mkdir -p /data && chown -R node:node /data
+# Create data directory
+RUN mkdir -p /data
 
 # Copy built application
-COPY --from=builder --chown=node:node /app/.next /app/.next
-COPY --from=builder --chown=node:node /app/node_modules /app/node_modules
-COPY --from=builder --chown=node:node /app/package.json /app/package.json
-COPY --from=builder --chown=node:node /app/kernel /app/kernel
-COPY --from=builder --chown=node:node /app/src /app/src
-COPY --from=builder --chown=node:node /app/public /app/public
-COPY --from=builder --chown=node:node /app/next.config.ts /app/next.config.ts
-COPY --from=builder --chown=node:node /app/tsconfig.json /app/tsconfig.json
-COPY --from=builder --chown=node:node /app/tailwind.config.ts /app/tailwind.config.ts
-COPY --from=builder --chown=node:node /app/postcss.config.js /app/postcss.config.js
+COPY --from=builder /app/.next /app/.next
+COPY --from=builder /app/node_modules /app/node_modules
+COPY --from=builder /app/package.json /app/package.json
+COPY --from=builder /app/kernel /app/kernel
+COPY --from=builder /app/src /app/src
+COPY --from=builder /app/public /app/public
+COPY --from=builder /app/next.config.ts /app/next.config.ts
+COPY --from=builder /app/tsconfig.json /app/tsconfig.json
+COPY --from=builder /app/tailwind.config.ts /app/tailwind.config.ts
+COPY --from=builder /app/postcss.config.js /app/postcss.config.js
 
 # Copy config
-COPY --chown=node:node config/ /app/config/
+COPY config/ /app/config/
 
 WORKDIR /app
 EXPOSE 3000
 
-# Run as the built-in node user (no su needed)
-USER node
-
-# Start directly - no entrypoint script, no bash needed
+# Start directly as root (volume mount requires root access)
 CMD ["tsx", "kernel/server.ts"]
