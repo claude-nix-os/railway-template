@@ -15,7 +15,7 @@
         "Custom ClaudeOS branding (title, colors, logo) replaces VS Code defaults",
         "The kernel server's API routes (/api/*) and WebSocket still work for sessions"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "US-002",
