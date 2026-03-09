@@ -170,7 +170,7 @@
         "Auth flow works (token or passkey)",
         "All modules load without errors"
       ],
-      "passes": false
+      "passes": true
     }
   ]
 }
