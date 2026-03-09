@@ -1,0 +1,176 @@
+{
+  "branchName": "ralph/claudeos-v4",
+  "projectContext": "ClaudeOS v4 - A self-expanding agent OS built on Claude Code. Currently deployed at https://renewed-spirit-production.up.railway.app/ with a custom React UI. Must be upgraded to use a VS Code fork (code-server/OpenVSCode) as the frontend UI kernel, with all panels rendered inside VS Code's extension host. The kernel server runs at kernel/server.ts, modules live in modules/, and the app is containerized with Docker on Railway. GitHub org: claude-nix-os. All 7 modules now load successfully via tsx.",
+  "techStack": "Next.js, React, TypeScript, Tailwind CSS, Zustand, Node.js 22, tsx, Docker, Railway, Mem0 (Python), n8n",
+  "qualityChecks": "npm run build && npm run typecheck 2>/dev/null; echo 'Quality check done'",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Replace custom React UI shell with OpenVSCode Server",
+      "description": "Replace the current custom React layout (ActivityBar, Sidebar, TabBar, StatusBar components) with OpenVSCode Server (gitpod/openvscode-server) running in the browser. OpenVSCode Server provides the full VS Code shell (activity bar, sidebar, editor area, panel, status bar) out of the box. Configure it to be rebranded as 'ClaudeOS'. The Next.js server should proxy to OpenVSCode Server for the UI, while still handling API routes and WebSocket connections for Claude Code sessions.",
+      "acceptCriteria": [
+        "OpenVSCode Server runs inside the Docker container alongside the kernel server",
+        "Navigating to the root URL shows the VS Code interface branded as ClaudeOS",
+        "The VS Code activity bar, sidebar, editor tabs, and status bar are all functional",
+        "Custom ClaudeOS branding (title, colors, logo) replaces VS Code defaults",
+        "The kernel server's API routes (/api/*) and WebSocket still work for sessions"
+      ],
+      "passes": false
+    },
+    {
+      "id": "US-002",
+      "title": "Build ClaudeOS Chat Panel as VS Code extension",
+      "description": "Create a VS Code extension that provides the Agent Chat panel as a VS Code webview. This panel replicates Claude Code Desktop's chat interface with expandable thought chains and tool calls. It connects to the kernel server's WebSocket for real-time session communication. The extension registers a view in the sidebar and can also be opened as an editor tab.",
+      "acceptCriteria": [
+        "A 'ClaudeOS: Chat' view appears in the VS Code sidebar",
+        "Users can start new Claude Code sessions from the chat panel",
+        "Messages stream in real-time via WebSocket",
+        "Tool calls and chain-of-thought are expandable/collapsible",
+        "The chat panel can be opened as a full editor tab",
+        "Notification badges appear when user input is required (AskUserQuestion)"
+      ],
+      "passes": false
+    },
+    {
+      "id": "US-003",
+      "title": "Build Session List sidebar with live status indicators",
+      "description": "Create a VS Code tree view that shows all Claude Code sessions with live status indicators. Active sessions show a spinning icon, sessions requiring input show a notification badge, and read sessions fade based on recency (most recent = bright, oldest = dim). Support rename, archive, delete via context menu. Archived sessions appear in a collapsible 'Archived' section with zombie sessions marked with a red dot.",
+      "acceptCriteria": [
+        "Session list appears in the VS Code sidebar",
+        "Active sessions show a spinning/loading indicator",
+        "Sessions requiring input show a question mark badge",
+        "Read sessions have graduated opacity based on recency",
+        "Context menu offers rename, archive, delete options",
+        "Archived section is collapsible with zombie sessions marked",
+        "Clicking a session opens its chat panel in the editor area"
+      ],
+      "passes": false
+    },
+    {
+      "id": "US-004",
+      "title": "Build Memory Graph visualizer extension",
+      "description": "Create a VS Code extension that provides a Memory Graph panel using D3.js or react-force-graph. The visualizer connects to the Mem0 memory service and renders an interactive knowledge graph. Support viewing memory at global, project, or session scope. Memory nodes should be clickable to see details.",
+      "acceptCriteria": [
+        "Memory Graph panel available in the VS Code panel area",
+        "Interactive force-directed graph renders memory nodes and edges",
+        "Toggle between global, project, and session memory scopes",
+        "Nodes are clickable to show memory details",
+        "Graph updates when new memories are added"
+      ],
+      "passes": false
+    },
+    {
+      "id": "US-005",
+      "title": "Build n8n workflow panel as VS Code extension",
+      "description": "Create a VS Code extension that embeds the n8n workflow editor in a webview panel. The extension proxies to the n8n service running in the container. Users can create, edit, and run workflows without leaving the VS Code interface. Add default heartbeat and failure handler workflows.",
+      "acceptCriteria": [
+        "n8n workflow editor loads in a VS Code webview panel",
+        "Users can create and edit workflows",
+        "Default heartbeat workflow is pre-installed",
+        "Default failure handler workflow is pre-installed",
+        "Workflow execution status is visible in the panel"
+      ],
+      "passes": false
+    },
+    {
+      "id": "US-006",
+      "title": "Build GUI Browser Sessions panel",
+      "description": "Create a VS Code extension that shows browser automation sessions. Display a grid overview of all current browser sessions with live screenshots. Support clicking into a single session for a detailed view with a time-scrubbing bar. Add 'take control' and 'hand off control' buttons for human-agent browser sharing.",
+      "acceptCriteria": [
+        "GUI Sessions panel shows grid of browser session thumbnails",
+        "Clicking a session opens detailed view with live/replay mode",
+        "Time scrubbing bar with color-coded action markers",
+        "Take control button allows human to interact with browser",
+        "Hand off control button returns control to agent with notification",
+        "Sessions auto-render even in headless mode"
+      ],
+      "passes": false
+    },
+    {
+      "id": "US-007",
+      "title": "Implement slash command system",
+      "description": "Add a Discord-style slash command system to the chat panel. Commands should appear as an autocomplete dropdown when typing '/'. Include built-in commands: /compress (compress context), /schedule (schedule job), /remember (store in Mem0), /recall (search Mem0), /think (toggle thinking mode). Slash commands can be programmatic (trigger n8n workflow), spawn subagents, or modify chat settings.",
+      "acceptCriteria": [
+        "Typing '/' in chat shows autocomplete dropdown of available commands",
+        "Each command shows name, description, and argument fields",
+        "/remember stores text in Mem0 memory",
+        "/recall searches Mem0 and returns relevant memories",
+        "/schedule creates a scheduled task",
+        "/compress triggers context compression",
+        "Commands can be added by modules via the module API"
+      ],
+      "passes": false
+    },
+    {
+      "id": "US-008",
+      "title": "Build Settings panel with auto-populated config",
+      "description": "Create a VS Code Settings-style panel that auto-populates with both ClaudeOS config options and Claude Code config options. Users should be able to discover and toggle features without reading docs. Group settings by category (General, Memory, Automation, Browser, Auth, Modules). Changes persist to the config files on disk.",
+      "acceptCriteria": [
+        "Settings panel renders with categorized config options",
+        "ClaudeOS config and Claude Code config are both represented",
+        "Each setting has a description and appropriate input control",
+        "Changes are saved to the config files immediately",
+        "New/experimental features are discoverable via the settings UI",
+        "Settings panel accessible via activity bar gear icon"
+      ],
+      "passes": false
+    },
+    {
+      "id": "US-009",
+      "title": "Implement internal task/todo system with scheduled execution",
+      "description": "Build a task management system that supports both manual todos and scheduled execution. Tasks can have do-by deadlines and do-at execution times. When a do-at time fires, it spawns a Claude Code session (new, existing, or custom agent). Tasks appear in a VS Code tree view and can be created via slash commands or the UI.",
+      "acceptCriteria": [
+        "Task list tree view in VS Code sidebar",
+        "Create tasks with title, description, due date",
+        "Do-at scheduling fires a Claude session at the specified time",
+        "Tasks can target new sessions, existing sessions, or custom agents",
+        "Task status tracking (pending, in-progress, completed, failed)",
+        "/task slash command creates tasks from chat"
+      ],
+      "passes": false
+    },
+    {
+      "id": "US-010",
+      "title": "Implement passkey authentication for Railway deployment",
+      "description": "Replace or augment token auth with WebAuthn/passkey authentication. Users should be able to register a passkey on first login and use it for subsequent logins. Fall back to token auth if passkeys are not supported. Credentials stored securely in the Railway volume.",
+      "acceptCriteria": [
+        "Login page offers passkey registration for new users",
+        "Returning users can authenticate via passkey",
+        "Fallback to token auth for non-passkey browsers",
+        "Auth state persists across deployments via volume",
+        "JWT session tokens issued after successful auth"
+      ],
+      "passes": false
+    },
+    {
+      "id": "US-011",
+      "title": "Add Playwright stealth browser to Docker container",
+      "description": "Add a headless Chrome/Chromium browser to the Docker container with Playwright and stealth plugins. The browser should be controllable via the kernel server API. Support for multiple concurrent browser sessions, screenshot capture, and optional 2Captcha/CapSolver integration via API keys in settings.",
+      "acceptCriteria": [
+        "Playwright with Chromium is installed in the Docker image",
+        "Browser sessions can be created via kernel API",
+        "Screenshots are captured and streamable to the GUI Sessions panel",
+        "Stealth plugins prevent basic bot detection",
+        "Multiple concurrent browser sessions supported",
+        "2Captcha/CapSolver API key fields in settings (optional)"
+      ],
+      "passes": false
+    },
+    {
+      "id": "US-012",
+      "title": "Deploy complete v4 to Railway with all services",
+      "description": "Update the Dockerfile to include all services: Next.js kernel, OpenVSCode Server, Mem0, n8n, Playwright browser. Use supervisord to manage all processes. Update railway.toml with appropriate healthcheck and resource settings. Ensure the deployment is stable and all features work at the production URL.",
+      "acceptCriteria": [
+        "All services start successfully via supervisord",
+        "VS Code UI loads at the production URL",
+        "Chat panel connects to Claude Code sessions",
+        "Memory service (Mem0) is operational",
+        "n8n automation is operational",
+        "Browser automation is available",
+        "Auth flow works (token or passkey)",
+        "All modules load without errors"
+      ],
+      "passes": false
+    }
+  ]
+}

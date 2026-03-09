@@ -1,0 +1,15 @@
+# Ralph Progress Log
+Started: 2026-03-09 13:10 CDT
+
+## Codebase Patterns
+- Module manifests use `claudeos-module.json` with fields: name, version, description, main, requires
+- All module entry points are `src/index.ts` (loaded via tsx at runtime, no compilation)
+- The kernel server at `kernel/server.ts` handles HTTP, WebSocket, and module loading
+- Module loader in `kernel/module-loader.ts` discovers from `./modules/` dir and `node_modules/@claude-nix-os/`
+- Docker image is `node:22-slim` with tsx installed globally, runs as root for volume access
+- Railway deployment: `railway up --detach` from repo root, healthcheck at `/`
+- Next.js config at `next.config.ts` uses `serverExternalPackages: ['ws']`
+- Zustand for state management, individual selectors to avoid re-render loops
+- The kernel auto-generates JWT_SECRET and AUTH_TOKEN if not provided via env vars
+
+---
