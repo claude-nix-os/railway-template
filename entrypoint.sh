@@ -1,9 +1,10 @@
 #!/bin/bash
-set -e
-
+# Don't use set -e so we get diagnostics on failure
 DATA_DIR="${DATA_DIR:-/data}"
 
 echo "[ClaudeOS] Starting initialization..."
+echo "[ClaudeOS] Memory: $(free -m 2>/dev/null | head -2 || echo 'N/A')"
+echo "[ClaudeOS] Disk: $(df -h / 2>/dev/null | tail -1 || echo 'N/A')"
 
 # ── Create persistent directories ─────────────────────────────
 for dir in workspace memories .claude .npm-global logs sessions n8n; do

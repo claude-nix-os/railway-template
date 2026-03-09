@@ -20,12 +20,10 @@ ENV NODE_ENV=production
 ENV DATA_DIR=/data
 ENV PORT=3000
 
-# System packages
+# System packages (minimal - no python, no n8n for lighter image)
 RUN apt-get update && apt-get install -y \
     curl wget git openssh-client \
-    python3 python3-pip python3-venv \
     supervisor \
-    sqlite3 \
     ca-certificates gnupg \
     && rm -rf /var/lib/apt/lists/*
 
@@ -34,18 +32,8 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
-# Global Node.js tools
-RUN npm install -g tsx n8n
-
-# Install Claude Code
-RUN npm install -g @anthropic-ai/claude-code
-
-# Python dependencies for mem0
-COPY services/mem0/requirements.txt /opt/mem0/requirements.txt
-RUN pip3 install --no-cache-dir -r /opt/mem0/requirements.txt
-
-# Copy mem0 service
-COPY services/mem0/ /opt/mem0/
+# Global Node.js tools (tsx only - n8n and claude-code disabled for lighter startup)
+RUN npm install -g tsx
 
 # Create non-root user (required for Claude Code --dangerously-skip-permissions)
 RUN useradd -m -s /bin/bash claude \
