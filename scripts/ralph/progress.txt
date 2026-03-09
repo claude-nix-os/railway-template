@@ -11,5 +11,50 @@ Started: 2026-03-09 13:10 CDT
 - Next.js config at `next.config.ts` uses `serverExternalPackages: ['ws']`
 - Zustand for state management, individual selectors to avoid re-render loops
 - The kernel auto-generates JWT_SECRET and AUTH_TOKEN if not provided via env vars
+- **Proxy routing**: kernel server routes `/` → OpenVSCode Server (port 8000), `/api/*` → Next.js, `/ws` → ClaudeOS WebSocket
+- **Process management**: supervisord manages openvscode-server (priority 100) and kernel-server (priority 200)
+- **OpenVSCode settings**: Stored in /data/.openvscode/User/settings.json, applied via init-openvscode.sh on container start
+
+---
+
+## 2026-03-09 14:30 CDT - US-001
+**Implemented:** Replace custom React UI shell with OpenVSCode Server
+
+**What was built:**
+- Integrated gitpod/openvscode-server into Docker container alongside kernel server
+- Created supervisord configuration to manage both processes (openvscode on port 8000, kernel on port 3000)
+- Implemented HTTP proxy in kernel server using http-proxy-middleware to route root URL to OpenVSCode
+- Preserved all API routes (/api/*) and WebSocket endpoint (/ws) for Claude Code sessions
+- Added ClaudeOS branding configuration (window title, dark theme, custom colors)
+- Created initialization script to apply settings to OpenVSCode Server user data directory
+
+**Subagents used:**
+1. **Explore agent** - Analyzed current ClaudeOS UI implementation (React components, Zustand stores, module system)
+2. **General-purpose agent** - Researched OpenVSCode Server integration patterns and best practices
+3. **General-purpose agent** - Created supervisord.conf with proper process priorities
+4. **General-purpose agent** - Updated Dockerfile to install OpenVSCode Server and supervisord
+5. **General-purpose agent** - Modified kernel/server.ts to add proxy middleware
+
+**Files changed:**
+- `Dockerfile` - Added OpenVSCode Server installation, supervisord setup
+- `kernel/server.ts` - Added proxy middleware for routing to OpenVSCode Server
+- `supervisord.conf` - Process management configuration (new file)
+- `config/vscode-settings.json` - ClaudeOS branding and theme settings (new file)
+- `scripts/init-openvscode.sh` - Initialization script for settings (new file)
+- `package.json` / `package-lock.json` - Added http-proxy-middleware@3.0.5
+- `scripts/ralph/prd.json` - Marked US-001 as passing
+
+**Learnings for future iterations:**
+- **Proxy architecture**: The kernel server now acts as a reverse proxy - root route → OpenVSCode, /api/* → Next.js, /ws → ClaudeOS WebSocket
+- **Process management**: Supervisord priority system ensures OpenVSCode starts first (priority 100) before kernel (priority 200)
+- **WebSocket handling**: Need to handle both ClaudeOS WebSocket (/ws) and OpenVSCode WebSocket connections separately
+- **Settings persistence**: OpenVSCode Server stores settings in --user-data-dir, mounted to /data/.openvscode for persistence
+- **Branding approach**: Window title and color theme via settings.json, true rebranding would require forking and modifying product.json
+- **Build validation**: npm run build succeeded, confirming TypeScript compilation is clean
+
+**Next steps:**
+- US-002: Build ClaudeOS Chat Panel as VS Code extension (will replace React chat UI)
+- US-003: Build Session List sidebar with live status indicators
+- Need to verify OpenVSCode Server actually loads at production URL after Railway deployment completes
 
 ---
