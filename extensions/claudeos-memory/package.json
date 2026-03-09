@@ -1,0 +1,113 @@
+{
+  "name": "claudeos-memory",
+  "displayName": "ClaudeOS Memory Graph",
+  "description": "Interactive memory graph visualizer for Mem0",
+  "version": "0.1.0",
+  "publisher": "claudeos",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onView:claudeos.memoryView"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "views": {
+      "claudeos-chat-container": [
+        {
+          "type": "webview",
+          "id": "claudeos.memoryView",
+          "name": "Memory Graph",
+          "contextualTitle": "ClaudeOS Memory Graph"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "claudeos.refreshMemory",
+        "title": "Refresh Memory Graph",
+        "category": "ClaudeOS Memory",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "claudeos.changeMemoryScope",
+        "title": "Change Memory Scope",
+        "category": "ClaudeOS Memory",
+        "icon": "$(filter)"
+      },
+      {
+        "command": "claudeos.exportMemoryGraph",
+        "title": "Export Memory Graph",
+        "category": "ClaudeOS Memory",
+        "icon": "$(export)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "claudeos.refreshMemory",
+          "when": "view == claudeos.memoryView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "claudeos.changeMemoryScope",
+          "when": "view == claudeos.memoryView",
+          "group": "navigation@2"
+        },
+        {
+          "command": "claudeos.exportMemoryGraph",
+          "when": "view == claudeos.memoryView",
+          "group": "navigation@3"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "ClaudeOS Memory",
+      "properties": {
+        "claudeos.memory.apiUrl": {
+          "type": "string",
+          "default": "http://localhost:3000/api/memory",
+          "description": "Mem0 API URL for fetching memory graph data"
+        },
+        "claudeos.memory.autoRefresh": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically refresh memory graph on changes"
+        },
+        "claudeos.memory.refreshInterval": {
+          "type": "number",
+          "default": 30000,
+          "description": "Auto-refresh interval in milliseconds (default: 30000 = 30 seconds)"
+        },
+        "claudeos.memory.defaultScope": {
+          "type": "string",
+          "enum": ["session", "user", "global"],
+          "default": "session",
+          "description": "Default scope for memory graph visualization"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "node esbuild.js",
+    "build": "node esbuild.js",
+    "watch": "node esbuild.js --watch",
+    "package": "vsce package",
+    "lint": "eslint src --ext ts"
+  },
+  "dependencies": {
+    "force-graph": "^1.43.5",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "@types/ws": "^8.5.10",
+    "esbuild": "^0.24.0",
+    "typescript": "^5.7.0"
+  }
+}

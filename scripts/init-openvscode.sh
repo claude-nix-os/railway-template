@@ -37,4 +37,13 @@ else
   echo "[ClaudeOS] Warning: ClaudeOS Sessions extension not found at /app/extensions/claudeos-sessions"
 fi
 
+# Install ClaudeOS Memory extension
+if [ -d /app/extensions/claudeos-memory ]; then
+  echo "[ClaudeOS] Installing ClaudeOS Memory extension..."
+  /opt/openvscode-server/bin/openvscode-server --install-extension /app/extensions/claudeos-memory --extensions-dir /data/.openvscode/extensions
+  echo "[ClaudeOS] ClaudeOS Memory extension installed successfully"
+else
+  echo "[ClaudeOS] Warning: ClaudeOS Memory extension not found at /app/extensions/claudeos-memory"
+fi
+
 echo "[ClaudeOS] OpenVSCode Server initialization complete"
