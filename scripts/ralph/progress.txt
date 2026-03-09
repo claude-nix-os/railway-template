@@ -182,3 +182,66 @@ Started: 2026-03-09 13:10 CDT
 
 ---
 
+## 2026-03-09 20:15 CDT - US-004
+**Implemented:** Build Memory Graph visualizer extension
+
+**What was built:**
+- Complete VS Code extension (claudeos-memory) with 2,601 lines of code across 15 files
+- Extension provides Memory Graph panel as a webview in VS Code sidebar
+- Interactive force-directed graph visualization using force-graph library (vanilla JS, 150KB)
+- MemoryApiClient for HTTP communication with Mem0 backend (port 8100)
+- Scope switching between global, project, and session memory views
+- Node click handlers for viewing details and opening related files
+- Export functionality to save graph data as JSON
+- Auto-refresh capability with configurable intervals
+- Status bar integration showing current memory scope
+- Theme-aware styling with VS Code CSS variables
+
+**Subagents used:**
+1. **Explore agent** - Analyzed existing Mem0 integration (module-memory/, API routes, Python backend)
+2. **General-purpose agent** - Researched graph visualization libraries (D3.js, force-graph, vis-network, Cytoscape.js)
+3. **General-purpose agent** - Created extension manifest (package.json) and build configuration
+4. **General-purpose agent** - Implemented TypeScript types and MemoryApiClient HTTP client
+5. **General-purpose agent** - Built webview UI with force-graph integration (main.ts, styles.css, types.ts)
+6. **General-purpose agent** - Completed MemoryGraphViewProvider with API integration
+7. **General-purpose agent** - Finished extension.ts with command registration and status bar
+
+**Files created:**
+- `extensions/claudeos-memory/` - Complete VS Code extension directory
+- Extension config: package.json, tsconfig.json, esbuild.js, .vscodeignore, README.md
+- Core files:
+  - src/extension.ts - Extension activation, command registration, status bar, config listener
+  - src/MemoryGraphViewProvider.ts - Webview provider managing graph data and messages
+  - src/types.ts - TypeScript type definitions (Memory, MemoryGraph, GraphNode, GraphEdge)
+  - src/services/MemoryApiClient.ts - HTTP client for Mem0 API with Bearer auth
+  - src/webview/main.ts - Force-graph visualization with interactive UI
+  - src/webview/styles.css - Theme-aware styles using --vscode-* variables
+  - src/webview/types.ts - Webview message protocol types
+
+**Files modified:**
+- `Dockerfile` - Added claudeos-memory extension build step
+- `scripts/init-openvscode.sh` - Added claudeos-memory extension installation
+- `scripts/ralph/prd.json` - Marked US-004 as passing
+
+**Learnings for future iterations:**
+- **Library selection**: force-graph (vanilla JS, 150KB) chosen over react-force-graph (requires React framework)
+- **Mem0 API integration**: Existing API routes at `/api/memory/*` proxy to Python FastAPI backend on port 8100
+- **Memory scopes**: Implemented via `user_id` query parameter (global, project, session)
+- **Graph data structure**: Backend returns `{nodes: GraphNode[], edges: GraphEdge[]}` format
+- **Force-graph features**: Built-in zoom, pan, drag, physics simulation, directional particles
+- **WebView CDN loading**: Force-graph loaded from cdn.jsdelivr.net with CSP allowlist
+- **User ID resolution**: Global="global", Project=workspace folder name, Session=from workspace state
+- **Node coloring**: Color-coded by user_id (global=indigo, system=pink, user=emerald, claude=amber)
+- **Export pattern**: VS Code showSaveDialog + fs.writeFile for JSON export
+- **Auto-refresh**: setInterval timer managed in extension.ts with proper disposal
+- **Configuration**: VS Code workspace settings for API URL, auth token, refresh interval
+
+**Next steps:**
+- US-005: Build n8n workflow panel as VS Code extension
+- US-006: Build GUI Browser Sessions panel
+- Need to verify memory extension loads correctly in OpenVSCode Server after Railway deployment
+- Consider adding WebSocket support for real-time memory graph updates (currently HTTP polling)
+- May want to implement memory search UI with highlighting in the graph
+
+---
+
