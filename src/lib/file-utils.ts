@@ -1,6 +1,6 @@
 import { readdir, stat, readFile } from 'fs/promises';
 import { join, resolve, extname, basename } from 'path';
-import type { DirectoryEntry } from '../types';
+import type { DirectoryEntry } from '../types/file-explorer';
 
 /** Maximum file size for content reading (1MB) */
 export const MAX_FILE_SIZE = 1024 * 1024;

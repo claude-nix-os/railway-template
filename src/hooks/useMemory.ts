@@ -7,7 +7,7 @@ import type {
   SearchMemoryRequest,
   AddEdgeRequest,
   HealthResponse,
-} from '@/types';
+} from '@/types/memory';
 
 // ---------------------------------------------------------------------------
 // Configuration

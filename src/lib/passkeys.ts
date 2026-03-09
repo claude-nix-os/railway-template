@@ -8,7 +8,7 @@ import type {
   ChallengeEntry,
   SetupToken,
   SetupTokensStore,
-} from '../types';
+} from '../types/passkey';
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
