@@ -7,5 +7,5 @@
   "repository": "https://github.com/claude-nix-os/module-ui-railway-sidecar",
   "requires": ["@claude-nix-os/module-ui"],
   "optional": [],
-  "main": "dist/index.js"
+  "main": "src/index.ts"
 }

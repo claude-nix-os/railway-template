@@ -2,9 +2,9 @@
   "name": "@claude-nix-os/module-railway-tools",
   "version": "1.0.0",
   "description": "ClaudeOS Module - Railway management slash commands, UI components, and tooling",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "files": ["dist/", "claudeos-module.json"],
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "files": ["src/", "claudeos-module.json"],
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc && cp -r src/components dist/ && cp -r src/api dist/ && cp -r src/skills dist/",

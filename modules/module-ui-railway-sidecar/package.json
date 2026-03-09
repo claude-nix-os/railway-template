@@ -2,9 +2,9 @@
   "name": "@claude-nix-os/module-ui-railway-sidecar",
   "version": "1.0.0",
   "description": "ClaudeOS Module - Serves the ClaudeOS UI on a Railway public URL with proxy-aware routing",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "files": ["dist/", "claudeos-module.json"],
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "files": ["src/", "claudeos-module.json"],
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc && cp -r src/middleware dist/ && cp -r src/api dist/",

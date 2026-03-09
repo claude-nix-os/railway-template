@@ -2,9 +2,9 @@
   "name": "@claude-nix-os/module-file-explorer",
   "version": "1.0.0",
   "description": "ClaudeOS Module - Filesystem browsing, git diffs, and task management",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "files": ["dist/", "claudeos-module.json"],
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "files": ["src/", "claudeos-module.json"],
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc && cp -r src/components dist/ && cp -r src/api dist/ && cp -r src/lib dist/",
