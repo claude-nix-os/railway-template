@@ -19,6 +19,7 @@ import { randomBytes } from 'crypto';
 import { SignJWT, jwtVerify } from 'jose';
 import * as fs from 'fs';
 import * as path from 'path';
+import { createProxyMiddleware } from 'http-proxy-middleware';
 import type { Session, Message, ToolCall, ModuleRegistry, WsHandlerDefinition } from './types';
 import { buildRegistry } from './module-loader';
 
@@ -492,22 +493,48 @@ async function startServer(): Promise<void> {
   ensureDirs();
   loadSessions();
 
+  // Create proxy middleware for OpenVSCode Server
+  const vscodeProxy = createProxyMiddleware({
+    target: 'http://127.0.0.1:8000',
+    changeOrigin: true,
+    ws: true,
+    onError: (err, req, res) => {
+      console.error('[Proxy] Error proxying request:', err.message);
+      if (!res.headersSent && res && typeof res.writeHead === 'function') {
+        res.writeHead(502, { 'Content-Type': 'text/plain' });
+        res.end('Bad Gateway - OpenVSCode Server not available');
+      }
+    },
+  });
+
   // Create HTTP server
   const server = createServer((req, res) => {
     const url = req.url || '/';
+    const pathname = url.split('?')[0];
 
-    // Check module API routes first
-    for (const route of registry.apiRoutes) {
-      if (url.startsWith(route.path)) {
-        // Module API routes are handled through Next.js API routes
-        // The build pipeline generates the appropriate route files
-        break;
+    // Skip proxy for API routes and WebSocket endpoint
+    if (pathname.startsWith('/api/') || pathname === '/ws') {
+      // Check module API routes first
+      for (const route of registry.apiRoutes) {
+        if (url.startsWith(route.path)) {
+          // Module API routes are handled through Next.js API routes
+          // The build pipeline generates the appropriate route files
+          break;
+        }
       }
+
+      // Default: Next.js handles the request
+      const parsedUrl = parse(req.url!, true);
+      handle(req, res, parsedUrl);
+      return;
     }
 
-    // Default: Next.js handles the request
-    const parsedUrl = parse(req.url!, true);
-    handle(req, res, parsedUrl);
+    // Proxy all other requests to OpenVSCode Server
+    vscodeProxy(req, res, (err) => {
+      if (err) {
+        console.error('[Proxy] Middleware error:', err);
+      }
+    });
   });
 
   // WebSocket server
@@ -516,14 +543,18 @@ async function startServer(): Promise<void> {
   server.on('upgrade', async (req, socket, head) => {
     const pathname = req.url?.split('?')[0];
 
-    if (pathname !== '/ws') {
-      socket.destroy();
+    // Handle ClaudeOS WebSocket endpoint
+    if (pathname === '/ws') {
+      wss.handleUpgrade(req, socket, head, (ws) => {
+        wss.emit('connection', ws, req);
+      });
       return;
     }
 
-    wss.handleUpgrade(req, socket, head, (ws) => {
-      wss.emit('connection', ws, req);
-    });
+    // Proxy all other WebSocket connections to OpenVSCode Server
+    if (vscodeProxy.upgrade) {
+      vscodeProxy.upgrade(req, socket as any, head);
+    }
   });
 
   wss.on('connection', async (ws: WebSocket, req: IncomingMessage) => {

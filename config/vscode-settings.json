@@ -1,0 +1,28 @@
+{
+  "window.title": "ClaudeOS - ${dirty}${activeEditorShort}${separator}${rootName}",
+  "window.titleBarStyle": "custom",
+  "workbench.colorTheme": "Default Dark Modern",
+  "workbench.colorCustomizations": {
+    "titleBar.activeBackground": "#1a1a1a",
+    "titleBar.activeForeground": "#ffffff",
+    "titleBar.inactiveBackground": "#1a1a1a",
+    "titleBar.inactiveForeground": "#888888",
+    "activityBar.background": "#0a0a0a",
+    "activityBar.foreground": "#ffffff",
+    "activityBar.activeBorder": "#4a90e2",
+    "statusBar.background": "#0a0a0a",
+    "statusBar.foreground": "#ffffff",
+    "statusBar.noFolderBackground": "#0a0a0a"
+  },
+  "workbench.startupEditor": "none",
+  "workbench.editor.enablePreview": false,
+  "workbench.sideBar.location": "left",
+  "editor.minimap.enabled": true,
+  "editor.fontSize": 14,
+  "editor.fontFamily": "'SF Mono', 'Monaco', 'Menlo', 'Courier New', monospace",
+  "terminal.integrated.fontFamily": "'SF Mono', 'Monaco', 'Menlo', 'Courier New', monospace",
+  "explorer.confirmDelete": false,
+  "explorer.confirmDragAndDrop": false,
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 1000
+}
