@@ -245,3 +245,61 @@ Started: 2026-03-09 13:10 CDT
 
 ---
 
+## 2026-03-09 22:00 CDT - US-005
+**Implemented:** Build n8n workflow panel as VS Code extension
+
+**What was built:**
+- Complete VS Code extension (claudeos-n8n) with 1,359 lines of code across 12 files
+- Extension embeds n8n workflow editor in a webview panel via iframe
+- Connects to n8n service proxied at /n8n/ (kernel server port 3000 → n8n port 5678)
+- Two default workflow JSON files: heartbeat.json and failure-handler.json
+- Commands for refreshing view and opening n8n in external browser
+- Status bar integration showing connection status
+- Configuration for n8n server URL with default to http://localhost:3000/n8n
+
+**Subagents used:**
+1. **Explore agent** - Analyzed existing n8n integration (module-n8n/, API routes, proxy setup, bootstrap)
+2. **General-purpose agent** - Researched n8n embedding patterns (iframe, CSP, authentication, VS Code APIs)
+3. **General-purpose agent** - Created extension structure (package.json, tsconfig, esbuild, README)
+4. **General-purpose agent** - Implemented TypeScript source files (extension.ts, N8nViewProvider.ts, types.ts)
+5. **General-purpose agent** - Created heartbeat workflow JSON (runs every 5 min, checks /api/health)
+6. **General-purpose agent** - Created failure-handler workflow JSON (error trigger with logging)
+7. **General-purpose agent** - Updated Dockerfile and init-openvscode.sh to build/install extension
+
+**Files created:**
+- `extensions/claudeos-n8n/` - Complete VS Code extension directory
+- Extension config: package.json, tsconfig.json, esbuild.js, .vscodeignore, README.md
+- Source files:
+  - src/extension.ts - Extension activation with command registration and status bar
+  - src/N8nViewProvider.ts - WebviewViewProvider embedding n8n iframe
+  - src/types.ts - TypeScript type definitions (N8nWorkflow, N8nExecution, WebviewMessage)
+- Workflow templates:
+  - workflows/heartbeat.json - Health check workflow (every 5 min)
+  - workflows/failure-handler.json - Error capture workflow
+
+**Files modified:**
+- `Dockerfile` - Added claudeos-n8n extension build step
+- `scripts/init-openvscode.sh` - Added claudeos-n8n extension installation
+- `scripts/ralph/prd.json` - Marked US-005 as passing
+
+**Learnings for future iterations:**
+- **n8n proxy architecture**: ClaudeOS already has HTTP proxy at /n8n/* that strips security headers for iframe embedding
+- **API key bootstrap**: n8n auto-generates API key at /data/n8n/.api_key during first boot
+- **Webview iframe**: Simple iframe embedding works when n8n is proxied from same origin (localhost:3000)
+- **CSP for iframes**: Need to whitelist frame-src in Content Security Policy for webview
+- **Command naming**: VS Code commands use dot notation (claudeos-n8n.refresh, not claudeos.refreshN8n)
+- **View type matching**: WebviewViewProvider.viewType must match package.json contributes.views[].id
+- **Configuration approach**: Use single serverUrl config instead of separate protocol/hostname/port
+- **Workflow JSON format**: n8n workflows are standard JSON with nodes[], connections{}, settings, active flag
+- **Extension build pattern**: esbuild bundles extension code to dist/extension.js, installed via openvscode-server CLI
+- **Default workflows**: Workflow JSON templates are provided but not auto-imported (user imports manually via n8n UI)
+
+**Next steps:**
+- US-006: Build GUI Browser Sessions panel
+- US-007: Implement slash command system
+- Need to verify claudeos-n8n extension loads correctly in OpenVSCode Server after Railway deployment
+- May want to add automatic workflow import during n8n bootstrap (instead of manual import)
+- Consider adding workflow status indicators in the extension UI (active/inactive counts)
+
+---
+
