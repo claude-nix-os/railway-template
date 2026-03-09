@@ -54,12 +54,15 @@ ENV NODE_ENV=production
 ENV DATA_DIR=/data
 ENV PORT=3000
 
-# Install system dependencies including Playwright dependencies
+# Install system dependencies including Playwright dependencies, Python, and n8n
 RUN apt-get update && apt-get install -y \
     openssl \
     supervisor \
     wget \
     tar \
+    python3 \
+    python3-pip \
+    python3-venv \
     # Playwright dependencies
     libnss3 \
     libnspr4 \
@@ -78,7 +81,8 @@ RUN apt-get update && apt-get install -y \
     libpango-1.0-0 \
     libcairo2 \
     && rm -rf /var/lib/apt/lists/* \
-    && npm install -g tsx
+    && npm install -g tsx n8n \
+    && pip3 install --no-cache-dir fastapi uvicorn pydantic --break-system-packages
 
 # Download and install OpenVSCode Server (latest stable version)
 RUN OPENVSCODE_VERSION=$(wget -qO- https://api.github.com/repos/gitpod/openvscode-server/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")' | sed 's/^openvscode-server-v//') \
@@ -123,6 +127,9 @@ COPY supervisord.conf /etc/supervisor/supervisord.conf
 # Copy initialization scripts
 COPY scripts/init-openvscode.sh /app/scripts/init-openvscode.sh
 RUN chmod +x /app/scripts/init-openvscode.sh
+
+# Copy Mem0 service
+COPY --from=builder /app/modules/module-memory/services/mem0 /opt/mem0
 
 WORKDIR /app
 EXPOSE 3000

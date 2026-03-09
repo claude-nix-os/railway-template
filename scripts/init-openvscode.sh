@@ -85,4 +85,10 @@ fi
 # Create browser sessions data directory
 mkdir -p /data/browser-sessions
 
+# Create n8n data directory
+mkdir -p /data/n8n
+
+# Create memories directory for Mem0
+mkdir -p /data/memories
+
 echo "[ClaudeOS] OpenVSCode Server initialization complete"
