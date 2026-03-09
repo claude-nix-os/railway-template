@@ -27,6 +27,17 @@ if [ -z "$CLAUDE_OS_AUTH_TOKEN" ]; then
 fi
 echo "[ClaudeOS] Auth token: $CLAUDE_OS_AUTH_TOKEN"
 
+# ── Generate/load JWT secret ─────────────────────────────────
+if [ -z "$JWT_SECRET" ]; then
+  if [ -f "$DATA_DIR/.jwt_secret" ]; then
+    export JWT_SECRET=$(cat "$DATA_DIR/.jwt_secret")
+  else
+    export JWT_SECRET=$(openssl rand -hex 32)
+    echo "$JWT_SECRET" > "$DATA_DIR/.jwt_secret"
+    chmod 600 "$DATA_DIR/.jwt_secret"
+  fi
+fi
+
 # ── Generate/load n8n encryption key ─────────────────────────
 if [ -f "$DATA_DIR/n8n/.encryption_key" ]; then
   export N8N_ENCRYPTION_KEY=$(cat "$DATA_DIR/n8n/.encryption_key")
@@ -110,6 +121,7 @@ chown claude:claude /home/claude/.claude.json
 # ── Export env vars for supervisor ────────────────────────────
 export CLAUDE_OS_AUTH_TOKEN
 export N8N_ENCRYPTION_KEY
+export JWT_SECRET
 export DATA_DIR
 export PORT="${PORT:-3000}"
 
