@@ -30,7 +30,11 @@ interface StatusBarProps {
 
 export function StatusBar({ connectionStatus }: StatusBarProps) {
   const statusBarVisible = usePanelStore((s) => s.statusBarVisible);
-  const activeSession = useSessionStore((s) => s.getActiveSession());
+  const activeSessionId = useSessionStore((s) => s.activeSessionId);
+  const sessions = useSessionStore((s) => s.sessions);
+  const activeSession = activeSessionId
+    ? sessions.find((s) => s.id === activeSessionId)
+    : undefined;
 
   if (!statusBarVisible) return null;
 

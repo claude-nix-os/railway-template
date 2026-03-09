@@ -70,7 +70,7 @@ function SessionStatusIcon({ status }: { status: SessionStatus }) {
 
 function SessionsSidebar() {
   const [searchQuery, setSearchQuery] = useState('');
-  const sessions = useSessionStore((s) => s.getActiveSessions());
+  const allSessions = useSessionStore((s) => s.sessions);
   const activeSessionId = useSessionStore((s) => s.activeSessionId);
   const createSession = useSessionStore((s) => s.createSession);
   const setActiveSession = useSessionStore((s) => s.setActiveSession);
@@ -79,14 +79,17 @@ function SessionsSidebar() {
   const openTab = usePanelStore((s) => s.openTab);
 
   const filteredSessions = useMemo(() => {
-    if (!searchQuery.trim()) return sessions;
+    const active = allSessions.filter(
+      (s) => s.status === 'active' || s.status === 'idle'
+    );
+    if (!searchQuery.trim()) return active;
     const q = searchQuery.toLowerCase();
-    return sessions.filter(
+    return active.filter(
       (s) =>
         s.title.toLowerCase().includes(q) ||
         s.lastMessage?.toLowerCase().includes(q)
     );
-  }, [sessions, searchQuery]);
+  }, [allSessions, searchQuery]);
 
   const handleNewSession = useCallback(() => {
     const sessionId = createSession();
@@ -310,7 +313,11 @@ function GitSidebar() {
 /* ------------------------------------------------------------------ */
 
 function ArchiveSidebar() {
-  const archivedSessions = useSessionStore((s) => s.getArchivedSessions());
+  const allSessions = useSessionStore((s) => s.sessions);
+  const archivedSessions = useMemo(
+    () => allSessions.filter((s) => s.status === 'archived'),
+    [allSessions]
+  );
   const restoreSession = useSessionStore((s) => s.restoreSession);
   const deleteSession = useSessionStore((s) => s.deleteSession);
 

@@ -1,9 +1,8 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUIStore } from '@/stores/ui-store';
-import { useSessionStore } from '@/stores/session-store';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { registerPanel } from '@/components/layout/PanelWrapper';
 import type { ConnectionStatus } from '@/types';
@@ -14,21 +13,23 @@ import type { ConnectionStatus } from '@/types';
 
 import dynamic from 'next/dynamic';
 
-const HomePanel = dynamic(() => import('@/components/panels/HomePanel').then(m => ({ default: m.default })), { ssr: false });
-const ChatPanel = dynamic(() => import('@/components/panels/ChatPanel').then(m => ({ default: m.default })), { ssr: false });
-const SettingsPanel = dynamic(() => import('@/components/panels/SettingsPanel').then(m => ({ default: m.default })), { ssr: false });
-const ConversationList = dynamic(() => import('@/components/panels/ConversationList').then(m => ({ default: m.default })), { ssr: false });
-const ExecutionGraph = dynamic(() => import('@/components/panels/ExecutionGraph').then(m => ({ default: m.default })), { ssr: false });
-const ThoughtStream = dynamic(() => import('@/components/panels/ThoughtStream').then(m => ({ default: m.default })), { ssr: false });
-const GUISessionViewer = dynamic(() => import('@/components/panels/GUISessionViewer').then(m => ({ default: m.default })), { ssr: false });
-const MemoryGraph = dynamic(() => import('@/components/panels/MemoryGraph').then(m => ({ default: m.default })), { ssr: false });
-const MemoryProjection = dynamic(() => import('@/components/panels/MemoryProjection').then(m => ({ default: m.default })), { ssr: false });
-const N8nPanel = dynamic(() => import('@/components/panels/N8nPanel').then(m => ({ default: m.default })), { ssr: false });
-const FileBrowser = dynamic(() => import('@/components/panels/FileBrowser').then(m => ({ default: m.default })), { ssr: false });
-const TaskPanel = dynamic(() => import('@/components/panels/TaskPanel').then(m => ({ default: m.default })), { ssr: false });
-const SessionDiffs = dynamic(() => import('@/components/panels/SessionDiffs').then(m => ({ default: m.default })), { ssr: false });
-const RailwayPanel = dynamic(() => import('@/components/panels/RailwayPanel').then(m => ({ default: m.default })), { ssr: false });
-const PasskeySettings = dynamic(() => import('@/components/panels/PasskeySettings').then(m => ({ default: m.default })), { ssr: false });
+/* Named exports → must map to { default: m.ComponentName } */
+const HomePanel = dynamic(() => import('@/components/panels/HomePanel').then(m => ({ default: m.HomePanel })), { ssr: false });
+const ChatPanel = dynamic(() => import('@/components/panels/ChatPanel').then(m => ({ default: m.ChatPanel })), { ssr: false });
+const SettingsPanel = dynamic(() => import('@/components/panels/SettingsPanel').then(m => ({ default: m.SettingsPanel })), { ssr: false });
+const ConversationList = dynamic(() => import('@/components/panels/ConversationList').then(m => ({ default: m.ConversationList })), { ssr: false });
+const ExecutionGraph = dynamic(() => import('@/components/panels/ExecutionGraph').then(m => ({ default: m.ExecutionGraph })), { ssr: false });
+const ThoughtStream = dynamic(() => import('@/components/panels/ThoughtStream').then(m => ({ default: m.ThoughtStream })), { ssr: false });
+const GUISessionViewer = dynamic(() => import('@/components/panels/GUISessionViewer').then(m => ({ default: m.GUISessionViewer })), { ssr: false });
+/* Default exports → m.default works */
+const MemoryGraph = dynamic(() => import('@/components/panels/MemoryGraph'), { ssr: false });
+const MemoryProjection = dynamic(() => import('@/components/panels/MemoryProjection'), { ssr: false });
+const N8nPanel = dynamic(() => import('@/components/panels/N8nPanel'), { ssr: false });
+const FileBrowser = dynamic(() => import('@/components/panels/FileBrowser'), { ssr: false });
+const TaskPanel = dynamic(() => import('@/components/panels/TaskPanel'), { ssr: false });
+const SessionDiffs = dynamic(() => import('@/components/panels/SessionDiffs'), { ssr: false });
+const RailwayPanel = dynamic(() => import('@/components/panels/RailwayPanel'), { ssr: false });
+const PasskeySettings = dynamic(() => import('@/components/panels/PasskeySettings'), { ssr: false });
 
 /* ------------------------------------------------------------------ */
 /*  Main Page                                                          */
@@ -36,14 +37,16 @@ const PasskeySettings = dynamic(() => import('@/components/panels/PasskeySetting
 
 export default function MainPage() {
   const router = useRouter();
-  const { jwtToken, isAuthenticated } = useUIStore();
+  const jwtToken = useUIStore((s) => s.jwtToken);
+  const isAuthenticated = useUIStore((s) => s.isAuthenticated);
   const [mounted, setMounted] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected');
-  const [panelsRegistered, setPanelsRegistered] = useState(false);
+  const panelsRegisteredRef = useRef(false);
 
-  // Register all panels on mount
+  // Register all panels once on mount
   useEffect(() => {
-    if (panelsRegistered) return;
+    if (panelsRegisteredRef.current) return;
+    panelsRegisteredRef.current = true;
 
     registerPanel('home', HomePanel as any);
     registerPanel('chat', ChatPanel as any);
@@ -60,18 +63,16 @@ export default function MainPage() {
     registerPanel('session-diffs', SessionDiffs as any);
     registerPanel('railway', RailwayPanel as any);
     registerPanel('passkey-settings', PasskeySettings as any);
+  }, []);
 
-    setPanelsRegistered(true);
-  }, [panelsRegistered]);
-
+  // Load JWT from localStorage on mount only
   useEffect(() => {
-    // Check for stored JWT token
-    const stored = typeof window !== 'undefined' ? localStorage.getItem('claude_os_jwt') : null;
-    if (stored && !jwtToken) {
+    const stored = localStorage.getItem('claude_os_jwt');
+    if (stored && !useUIStore.getState().jwtToken) {
       useUIStore.getState().setJwtToken(stored);
     }
     setMounted(true);
-  }, [jwtToken]);
+  }, []);
 
   useEffect(() => {
     if (mounted && !isAuthenticated) {

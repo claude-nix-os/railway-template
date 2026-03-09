@@ -69,12 +69,13 @@ const QUICK_ACCESS: QuickAccessItem[] = [
 export function HomePanel({ panelId, tabId }: PanelProps) {
   const openTab = usePanelStore((s) => s.openTab);
   const createSession = useSessionStore((s) => s.createSession);
-  const sessions = useSessionStore((s) => s.getActiveSessions());
+  const sessions = useSessionStore((s) => s.sessions);
   const setActiveSession = useSessionStore((s) => s.setActiveSession);
 
   const recentSessions = useMemo(
     () =>
-      [...sessions]
+      sessions
+        .filter((s) => s.status === 'active' || s.status === 'idle')
         .sort(
           (a, b) =>
             new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
