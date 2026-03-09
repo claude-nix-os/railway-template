@@ -70,7 +70,7 @@
         "Default failure handler workflow is pre-installed",
         "Workflow execution status is visible in the panel"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "US-006",
