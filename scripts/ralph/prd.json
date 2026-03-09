@@ -154,7 +154,7 @@
         "Multiple concurrent browser sessions supported",
         "2Captcha/CapSolver API key fields in settings (optional)"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "US-012",
