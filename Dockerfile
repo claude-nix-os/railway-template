@@ -38,6 +38,10 @@ COPY --from=builder /app/tsconfig.json /app/tsconfig.json
 COPY --from=builder /app/tailwind.config.ts /app/tailwind.config.ts
 COPY --from=builder /app/postcss.config.js /app/postcss.config.js
 
+# Copy modules and module config (VS Code-inspired UI, memory, file explorer, etc.)
+COPY --from=builder /app/modules /app/modules
+COPY --from=builder /app/modules.json /app/modules.json
+
 # Copy config
 COPY config/ /app/config/
 
