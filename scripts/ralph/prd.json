@@ -140,7 +140,7 @@
         "Auth state persists across deployments via volume",
         "JWT session tokens issued after successful auth"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "US-011",
