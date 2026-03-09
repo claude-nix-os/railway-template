@@ -28,4 +28,13 @@ else
   echo "[ClaudeOS] Warning: ClaudeOS Chat extension not found at /app/extensions/claudeos-chat"
 fi
 
+# Install ClaudeOS Sessions extension
+if [ -d /app/extensions/claudeos-sessions ]; then
+  echo "[ClaudeOS] Installing ClaudeOS Sessions extension..."
+  /opt/openvscode-server/bin/openvscode-server --install-extension /app/extensions/claudeos-sessions --extensions-dir /data/.openvscode/extensions
+  echo "[ClaudeOS] ClaudeOS Sessions extension installed successfully"
+else
+  echo "[ClaudeOS] Warning: ClaudeOS Sessions extension not found at /app/extensions/claudeos-sessions"
+fi
+
 echo "[ClaudeOS] OpenVSCode Server initialization complete"

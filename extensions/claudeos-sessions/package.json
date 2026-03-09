@@ -1,0 +1,128 @@
+{
+  "name": "claudeos-sessions",
+  "displayName": "ClaudeOS Sessions",
+  "description": "Session list tree view with live status indicators for ClaudeOS",
+  "version": "0.1.0",
+  "publisher": "claudeos",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "views": {
+      "claudeos-chat-container": [
+        {
+          "id": "claudeos.sessionList",
+          "name": "Sessions",
+          "contextualTitle": "ClaudeOS Sessions"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "claudeos.openSession",
+        "title": "Open Session",
+        "category": "ClaudeOS Sessions",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "claudeos.renameSession",
+        "title": "Rename Session",
+        "category": "ClaudeOS Sessions",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "claudeos.archiveSession",
+        "title": "Archive Session",
+        "category": "ClaudeOS Sessions",
+        "icon": "$(archive)"
+      },
+      {
+        "command": "claudeos.restoreSession",
+        "title": "Restore Session",
+        "category": "ClaudeOS Sessions",
+        "icon": "$(discard)"
+      },
+      {
+        "command": "claudeos.deleteSession",
+        "title": "Delete Session",
+        "category": "ClaudeOS Sessions",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "claudeos.refreshSessions",
+        "title": "Refresh Sessions",
+        "category": "ClaudeOS Sessions",
+        "icon": "$(refresh)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "claudeos.refreshSessions",
+          "when": "view == claudeos.sessionList",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "claudeos.openSession",
+          "when": "view == claudeos.sessionList && viewItem =~ /^session/",
+          "group": "inline@1"
+        },
+        {
+          "command": "claudeos.renameSession",
+          "when": "view == claudeos.sessionList && viewItem =~ /^session\\.active/",
+          "group": "1_modify@1"
+        },
+        {
+          "command": "claudeos.archiveSession",
+          "when": "view == claudeos.sessionList && viewItem =~ /^session\\.active/",
+          "group": "2_manage@1"
+        },
+        {
+          "command": "claudeos.deleteSession",
+          "when": "view == claudeos.sessionList && viewItem =~ /^session\\.active/",
+          "group": "2_manage@2"
+        },
+        {
+          "command": "claudeos.restoreSession",
+          "when": "view == claudeos.sessionList && viewItem =~ /^session\\.archived/",
+          "group": "inline@1"
+        },
+        {
+          "command": "claudeos.deleteSession",
+          "when": "view == claudeos.sessionList && viewItem =~ /^session\\.archived/",
+          "group": "2_manage@1"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "node esbuild.js",
+    "build": "node esbuild.js",
+    "watch": "node esbuild.js --watch",
+    "package": "vsce package",
+    "lint": "eslint src --ext ts"
+  },
+  "dependencies": {
+    "ws": "^8.18.0",
+    "zustand": "^5.0.5",
+    "nanoid": "^5.1.5",
+    "marked": "^14.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "@types/ws": "^8.5.10",
+    "esbuild": "^0.24.0",
+    "typescript": "^5.7.0"
+  }
+}

@@ -235,6 +235,42 @@ function archiveSession(id: string): boolean {
   return true;
 }
 
+function renameSession(id: string, newTitle: string): boolean {
+  const session = sessions.get(id);
+  if (!session) return false;
+  session.title = newTitle;
+  session.updatedAt = new Date().toISOString();
+  saveSession(session);
+  broadcastAll({
+    type: 'session_update',
+    session: {
+      id,
+      title: session.title,
+      status: session.status,
+      updatedAt: session.updatedAt,
+    },
+  });
+  return true;
+}
+
+function restoreSession(id: string): boolean {
+  const session = sessions.get(id);
+  if (!session) return false;
+  session.status = 'idle';
+  session.updatedAt = new Date().toISOString();
+  saveSession(session);
+  broadcastAll({
+    type: 'session_update',
+    session: {
+      id,
+      status: 'idle',
+      title: session.title,
+      updatedAt: session.updatedAt,
+    },
+  });
+  return true;
+}
+
 // ---------------------------------------------------------------------------
 // Claude Code Process Management
 // ---------------------------------------------------------------------------
@@ -632,6 +668,24 @@ async function startServer(): Promise<void> {
 
           broadcast(data.sessionId, { type: 'message', message: userMsg });
           runClaudeCommand(data.sessionId, data.content);
+        } else if (data.type === 'rename_session' && data.sessionId && data.newTitle) {
+          const success = renameSession(data.sessionId, data.newTitle);
+          ws.send(
+            JSON.stringify({
+              type: 'rename_session_response',
+              success,
+              sessionId: data.sessionId,
+            }),
+          );
+        } else if (data.type === 'restore_session' && data.sessionId) {
+          const success = restoreSession(data.sessionId);
+          ws.send(
+            JSON.stringify({
+              type: 'restore_session_response',
+              success,
+              sessionId: data.sessionId,
+            }),
+          );
         }
       } catch (err) {
         console.error('[WS] Error processing message:', err);
@@ -660,6 +714,8 @@ async function startServer(): Promise<void> {
     createSession,
     deleteSession,
     archiveSession,
+    renameSession,
+    restoreSession,
     DATA_DIR,
     WORKSPACE_DIR,
     broadcastAll,
@@ -682,6 +738,8 @@ declare global {
     createSession: (title?: string) => Session;
     deleteSession: (id: string) => boolean;
     archiveSession: (id: string) => boolean;
+    renameSession: (id: string, newTitle: string) => boolean;
+    restoreSession: (id: string) => boolean;
     DATA_DIR: string;
     WORKSPACE_DIR: string;
     broadcastAll: (event: unknown) => void;

@@ -17,6 +17,11 @@ WORKDIR /app/extensions/claudeos-chat
 RUN npm ci
 RUN npm run compile
 
+# Build ClaudeOS Sessions extension
+WORKDIR /app/extensions/claudeos-sessions
+RUN npm ci
+RUN npm run build
+
 # ── Stage 2: Production (slim - just Node.js) ─────────────────
 FROM node:22-slim
 
