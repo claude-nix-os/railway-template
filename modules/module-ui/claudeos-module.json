@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "type": "ui",
   "description": "Core UI module providing the VSCode-inspired web interface for ClaudeOS",
-  "entrypoint": "src/index.ts",
-  "dependencies": [],
+  "main": "src/index.ts",
+  "requires": [],
   "provides": {
     "activityBarItems": [
       { "id": "home", "position": "top", "priority": 0 },
