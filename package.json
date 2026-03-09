@@ -5,11 +5,13 @@
   "description": "ClaudeOS Railway Template - Deploy ClaudeOS on Railway with one click",
   "scripts": {
     "dev": "tsx kernel/server.ts",
-    "build": "tsx kernel/build.ts && next build",
+    "build": "next build",
     "start": "NODE_ENV=production tsx kernel/server.ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "postinstall": "tsx kernel/build.ts --generate-only"
+    "module:add": "tsx kernel/cli/add-module.ts",
+    "module:remove": "tsx kernel/cli/remove-module.ts",
+    "module:list": "tsx kernel/cli/list-modules.ts"
   },
   "dependencies": {
     "next": "^15.3.2",
@@ -39,8 +41,10 @@
     "vitest": "^3.2.1",
     "@types/node": "^22.15.21",
     "@types/react": "^19.1.4",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "@types/ws": "^8.18.1",
     "@types/d3": "^7.4.3",
+    "@testing-library/jest-dom": "^6.6.3",
     "tailwindcss": "^3.4.17",
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.3"

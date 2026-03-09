@@ -14,6 +14,8 @@ const config: Config = {
         },
         border: {
           subtle: 'var(--border-subtle)',
+          default: 'var(--border-default)',
+          strong: 'var(--border-strong)',
         },
         text: {
           primary: 'var(--text-primary)',
@@ -22,11 +24,18 @@ const config: Config = {
         },
         accent: {
           DEFAULT: 'var(--accent)',
+          hover: 'var(--accent-hover)',
           muted: 'var(--accent-muted)',
+          glow: 'var(--accent-glow)',
         },
+        success: 'var(--success)',
+        warning: 'var(--warning)',
+        error: 'var(--error)',
+        info: 'var(--info)',
       },
       animation: {
         'spin-slow': 'spin 2s linear infinite',
+        'pulse-subtle': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
     },
   },
