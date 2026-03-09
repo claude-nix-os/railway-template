@@ -14,6 +14,9 @@ Started: 2026-03-09 13:10 CDT
 - **Proxy routing**: kernel server routes `/` → OpenVSCode Server (port 8000), `/api/*` → Next.js, `/ws` → ClaudeOS WebSocket
 - **Process management**: supervisord manages openvscode-server (priority 100) and kernel-server (priority 200)
 - **OpenVSCode settings**: Stored in /data/.openvscode/User/settings.json, applied via init-openvscode.sh on container start
+- **Task scheduling pattern**: Use EventEmitter + setTimeout for scheduled execution, load pending tasks on startup, clean up timers on dispose
+- **Natural language time parsing**: Regex-based parser for "in X minutes/hours/days", "tomorrow at X", "next Monday at X"
+- **Session spawning**: HTTP POST /api/sessions → WebSocket connection with JWT auth → send message content
 
 ---
 
