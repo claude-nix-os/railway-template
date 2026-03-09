@@ -99,7 +99,7 @@
         "/compress triggers context compression",
         "Commands can be added by modules via the module API"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "US-008",
