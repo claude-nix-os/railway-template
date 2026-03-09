@@ -27,6 +27,11 @@ WORKDIR /app/extensions/claudeos-memory
 RUN npm ci
 RUN npm run compile
 
+# Build ClaudeOS n8n extension
+WORKDIR /app/extensions/claudeos-n8n
+RUN npm ci
+RUN npm run build
+
 # ── Stage 2: Production (slim - just Node.js) ─────────────────
 FROM node:22-slim
 

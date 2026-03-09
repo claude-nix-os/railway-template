@@ -46,4 +46,13 @@ else
   echo "[ClaudeOS] Warning: ClaudeOS Memory extension not found at /app/extensions/claudeos-memory"
 fi
 
+# Install ClaudeOS n8n extension
+if [ -d /app/extensions/claudeos-n8n ]; then
+  echo "[ClaudeOS] Installing ClaudeOS n8n extension..."
+  /opt/openvscode-server/bin/openvscode-server --install-extension /app/extensions/claudeos-n8n --extensions-dir /data/.openvscode/extensions
+  echo "[ClaudeOS] ClaudeOS n8n extension installed successfully"
+else
+  echo "[ClaudeOS] Warning: ClaudeOS n8n extension not found at /app/extensions/claudeos-n8n"
+fi
+
 echo "[ClaudeOS] OpenVSCode Server initialization complete"

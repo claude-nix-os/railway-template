@@ -1,0 +1,136 @@
+{
+  "name": "ClaudeOS Failure Handler",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "error-trigger-node",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "workflow_id",
+              "name": "workflowId",
+              "value": "={{ $json.workflow.id }}",
+              "type": "string"
+            },
+            {
+              "id": "workflow_name",
+              "name": "workflowName",
+              "value": "={{ $json.workflow.name }}",
+              "type": "string"
+            },
+            {
+              "id": "execution_id",
+              "name": "executionId",
+              "value": "={{ $json.execution.id }}",
+              "type": "string"
+            },
+            {
+              "id": "error_message",
+              "name": "errorMessage",
+              "value": "={{ $json.execution.error.message }}",
+              "type": "string"
+            },
+            {
+              "id": "error_stack",
+              "name": "errorStack",
+              "value": "={{ $json.execution.error.stack }}",
+              "type": "string"
+            },
+            {
+              "id": "last_node_executed",
+              "name": "lastNodeExecuted",
+              "value": "={{ $json.execution.lastNodeExecuted }}",
+              "type": "string"
+            },
+            {
+              "id": "execution_mode",
+              "name": "executionMode",
+              "value": "={{ $json.execution.mode }}",
+              "type": "string"
+            },
+            {
+              "id": "timestamp",
+              "name": "timestamp",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set-error-metadata",
+      "name": "Set Error Metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [
+        450,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Log error details to console\nconst errorData = $input.first().json;\n\nconsole.log('=== ClaudeOS Workflow Error ===' );\nconsole.log('Workflow:', errorData.workflowName, `(ID: ${errorData.workflowId})`);\nconsole.log('Execution ID:', errorData.executionId);\nconsole.log('Failed Node:', errorData.lastNodeExecuted);\nconsole.log('Execution Mode:', errorData.executionMode);\nconsole.log('Error Message:', errorData.errorMessage);\nconsole.log('Timestamp:', errorData.timestamp);\nconsole.log('Stack Trace:', errorData.errorStack);\nconsole.log('==============================');\n\nreturn { json: errorData };"
+      },
+      "id": "log-error-to-console",
+      "name": "Log Error to Console",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        650,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Error Metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Error Metadata": {
+      "main": [
+        [
+          {
+            "node": "Log Error to Console",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1",
+  "meta": {
+    "instanceId": "claudeos"
+  },
+  "tags": [
+    {
+      "name": "error-handling"
+    },
+    {
+      "name": "claudeos"
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "name": "claudeos-n8n",
+  "displayName": "ClaudeOS n8n Workflows",
+  "description": "Embed n8n workflow editor in VS Code",
+  "version": "1.0.0",
+  "publisher": "claudeos",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onView:claudeos-n8n.workflowView"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "views": {
+      "claudeos-chat-container": [
+        {
+          "type": "webview",
+          "id": "claudeos-n8n.workflowView",
+          "name": "n8n Workflows",
+          "contextualTitle": "ClaudeOS n8n Workflows"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "claudeos-n8n.refresh",
+        "title": "Refresh n8n Workflows",
+        "category": "ClaudeOS n8n",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "claudeos-n8n.openInBrowser",
+        "title": "Open n8n in Browser",
+        "category": "ClaudeOS n8n",
+        "icon": "$(link-external)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "claudeos-n8n.refresh",
+          "when": "view == claudeos-n8n.workflowView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "claudeos-n8n.openInBrowser",
+          "when": "view == claudeos-n8n.workflowView",
+          "group": "navigation@2"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "ClaudeOS n8n",
+      "properties": {
+        "claudeos.n8n.serverUrl": {
+          "type": "string",
+          "default": "http://localhost:3000/n8n",
+          "description": "n8n server URL (proxied through ClaudeOS kernel server)"
+        },
+        "claudeos.n8n.autoRefresh": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically refresh the n8n iframe on changes"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "node esbuild.js",
+    "build": "node esbuild.js",
+    "watch": "node esbuild.js --watch",
+    "package": "vsce package",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.80.0",
+    "esbuild": "^0.24.0",
+    "typescript": "^5.7.0"
+  }
+}
