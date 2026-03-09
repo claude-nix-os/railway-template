@@ -42,6 +42,11 @@ WORKDIR /app/extensions/claudeos-settings
 RUN npm ci
 RUN npm run build
 
+# Build ClaudeOS Tasks extension
+WORKDIR /app/extensions/claudeos-tasks
+RUN npm ci
+RUN npm run compile
+
 # ── Stage 2: Production (slim - just Node.js) ─────────────────
 FROM node:22-slim
 

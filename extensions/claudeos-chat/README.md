@@ -25,6 +25,35 @@ A VS Code extension that provides the Agent Chat panel for ClaudeOS. This extens
 - `ClaudeOS: New Chat Session` - Starts a new Claude Code session
 - `ClaudeOS: Clear Chat History` - Clears the current chat history
 
+## Slash Commands
+
+The chat interface supports slash commands for quick actions:
+
+- `/compress` - Compress the current conversation context
+- `/schedule <task> <time>` - Schedule a task or reminder
+- `/task` - Create a task with optional scheduling
+  - Arguments:
+    - `title` (required) - The task title
+    - `description` (optional) - Task description
+    - `priority` (optional) - Priority level: low, medium, high, or urgent (default: medium)
+    - `doAt` (optional) - When to do the task using natural language
+  - Natural language time expressions:
+    - "in 5 minutes", "in 2 hours", "in 3 days"
+    - "tomorrow at 9am", "tomorrow at 3pm"
+    - "next Monday", "next Friday at 2pm"
+    - "today at 5pm"
+  - Examples:
+    - `/task title="Review PR #123" priority=high`
+    - `/task title="Daily standup" doAt="tomorrow at 9am"`
+    - `/task title="Fix bug in login" description="Users can't login with SSO" priority=urgent doAt="in 30 minutes"`
+    - `/task title="Weekly team meeting" doAt="next Monday at 10am"`
+- `/remember <text>` - Save information to long-term memory
+- `/recall <query> [limit]` - Search through memories
+- `/think` - Toggle chain-of-thought thinking mode
+- `/help` - Show available commands
+- `/clear` - Clear current session
+- `/new` - Create new session
+
 ## Requirements
 
 - VS Code 1.60.0 or higher

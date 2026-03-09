@@ -246,6 +246,7 @@ const helpHandler: CommandHandler = async (context: CommandContext) => {
     const commandList = [
       '/compress - Compress the current conversation context',
       '/schedule <task> <time> - Schedule a task or reminder',
+      '/task <title> [description] [priority] [doAt] - Create a task with optional scheduling',
       '/remember <text> - Save information to long-term memory',
       '/recall <query> [limit] - Search through memories',
       '/think - Toggle chain-of-thought thinking mode',
@@ -263,7 +264,7 @@ const helpHandler: CommandHandler = async (context: CommandContext) => {
 
     return {
       success: true,
-      message: 'Available commands: /compress, /schedule, /remember, /recall, /think, /help, /clear, /new',
+      message: 'Available commands: /compress, /schedule, /task, /remember, /recall, /think, /help, /clear, /new',
       silent: true, // Don't show message in chat since QuickPick was displayed
     };
   } catch (error) {
@@ -342,6 +343,245 @@ const newHandler: CommandHandler = async (context: CommandContext) => {
       success: false,
       error: {
         message: `Failed to create new session: ${errorMessage}`,
+      },
+    };
+  }
+};
+
+/**
+ * Parse natural language time expressions into ISO 8601 timestamps
+ */
+function parseNaturalTime(timeStr: string): string | null {
+  const now = new Date();
+  const normalized = timeStr.toLowerCase().trim();
+
+  // Match "in X minutes/hours/days"
+  const inPattern = /^in\s+(\d+)\s+(minute|minutes|min|hour|hours|hr|day|days)$/;
+  const inMatch = normalized.match(inPattern);
+  if (inMatch) {
+    const amount = parseInt(inMatch[1], 10);
+    const unit = inMatch[2];
+    const target = new Date(now);
+
+    if (unit.startsWith('min')) {
+      target.setMinutes(target.getMinutes() + amount);
+    } else if (unit.startsWith('hour') || unit.startsWith('hr')) {
+      target.setHours(target.getHours() + amount);
+    } else if (unit.startsWith('day')) {
+      target.setDate(target.getDate() + amount);
+    }
+
+    return target.toISOString();
+  }
+
+  // Match "tomorrow [at HH:mm]"
+  if (normalized.startsWith('tomorrow')) {
+    const target = new Date(now);
+    target.setDate(target.getDate() + 1);
+
+    const timeMatch = normalized.match(/at\s+(\d{1,2}):?(\d{2})?\s*(am|pm)?/);
+    if (timeMatch) {
+      let hours = parseInt(timeMatch[1], 10);
+      const minutes = timeMatch[2] ? parseInt(timeMatch[2], 10) : 0;
+      const meridiem = timeMatch[3];
+
+      if (meridiem === 'pm' && hours < 12) {
+        hours += 12;
+      } else if (meridiem === 'am' && hours === 12) {
+        hours = 0;
+      }
+
+      target.setHours(hours, minutes, 0, 0);
+    } else {
+      target.setHours(9, 0, 0, 0); // Default to 9 AM
+    }
+
+    return target.toISOString();
+  }
+
+  // Match "next Monday/Tuesday/etc"
+  const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+  const nextDayPattern = /^next\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)(?:\s+at\s+(\d{1,2}):?(\d{2})?\s*(am|pm)?)?$/;
+  const nextDayMatch = normalized.match(nextDayPattern);
+  if (nextDayMatch) {
+    const targetDayName = nextDayMatch[1];
+    const targetDayIndex = dayNames.indexOf(targetDayName);
+    const currentDayIndex = now.getDay();
+
+    let daysToAdd = targetDayIndex - currentDayIndex;
+    if (daysToAdd <= 0) {
+      daysToAdd += 7;
+    }
+
+    const target = new Date(now);
+    target.setDate(target.getDate() + daysToAdd);
+
+    if (nextDayMatch[2]) {
+      let hours = parseInt(nextDayMatch[2], 10);
+      const minutes = nextDayMatch[3] ? parseInt(nextDayMatch[3], 10) : 0;
+      const meridiem = nextDayMatch[4];
+
+      if (meridiem === 'pm' && hours < 12) {
+        hours += 12;
+      } else if (meridiem === 'am' && hours === 12) {
+        hours = 0;
+      }
+
+      target.setHours(hours, minutes, 0, 0);
+    } else {
+      target.setHours(9, 0, 0, 0); // Default to 9 AM
+    }
+
+    return target.toISOString();
+  }
+
+  // Match "today at HH:mm"
+  if (normalized.startsWith('today')) {
+    const timeMatch = normalized.match(/at\s+(\d{1,2}):?(\d{2})?\s*(am|pm)?/);
+    if (timeMatch) {
+      const target = new Date(now);
+      let hours = parseInt(timeMatch[1], 10);
+      const minutes = timeMatch[2] ? parseInt(timeMatch[2], 10) : 0;
+      const meridiem = timeMatch[3];
+
+      if (meridiem === 'pm' && hours < 12) {
+        hours += 12;
+      } else if (meridiem === 'am' && hours === 12) {
+        hours = 0;
+      }
+
+      target.setHours(hours, minutes, 0, 0);
+      return target.toISOString();
+    }
+  }
+
+  // Try to parse as ISO 8601 or standard date format
+  const parsed = new Date(timeStr);
+  if (!isNaN(parsed.getTime())) {
+    return parsed.toISOString();
+  }
+
+  return null;
+}
+
+/**
+ * /task - Create a task
+ */
+const taskHandler: CommandHandler = async (context: CommandContext) => {
+  try {
+    const title = context.args.title as string;
+    const description = (context.args.description as string) || '';
+    const priority = (context.args.priority as string) || 'medium';
+    const doAt = context.args.doAt as string | undefined;
+
+    if (!title || typeof title !== 'string' || title.trim().length === 0) {
+      return {
+        success: false,
+        error: {
+          message: 'Title is required',
+        },
+      };
+    }
+
+    // Validate priority
+    const validPriorities = ['low', 'medium', 'high', 'urgent'];
+    let normalizedPriority = priority.toLowerCase();
+
+    // Map "urgent" to "high" since the API only supports low/medium/high
+    if (normalizedPriority === 'urgent') {
+      normalizedPriority = 'high';
+    }
+
+    if (!validPriorities.includes(normalizedPriority)) {
+      return {
+        success: false,
+        error: {
+          message: 'Priority must be one of: low, medium, high, urgent',
+        },
+      };
+    }
+
+    // Parse doAt time if provided
+    let dueDate: string | null = null;
+    if (doAt) {
+      dueDate = parseNaturalTime(doAt);
+      if (!dueDate) {
+        return {
+          success: false,
+          error: {
+            message: `Could not parse time expression: "${doAt}". Try "in 5 minutes", "tomorrow at 3pm", or "next Monday"`,
+          },
+        };
+      }
+    }
+
+    // Get the kernel server URL from configuration
+    const config = vscode.workspace.getConfiguration('claudeos.chat');
+    const wsUrl = config.get<string>('wsUrl', 'ws://localhost:3000/ws');
+    const httpUrl = wsUrl.replace('ws://', 'http://').replace('wss://', 'https://').replace('/ws', '');
+
+    // Create task via HTTP POST to /api/tasks
+    const response = await fetch(`${httpUrl}/api/tasks`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        title: title.trim(),
+        description: description.trim(),
+        priority: normalizedPriority === 'urgent' ? 'high' : normalizedPriority,
+        dueDate,
+        sessionId: context.sessionId,
+        status: 'todo',
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: response.statusText }));
+      return {
+        success: false,
+        error: {
+          message: `Failed to create task: ${errorData.error || response.statusText}`,
+        },
+      };
+    }
+
+    const task = await response.json();
+
+    // Build success message
+    let message = `Task created: ${task.title} (ID: ${task.id})`;
+    if (dueDate) {
+      const dueDateObj = new Date(dueDate);
+      const formattedDate = dueDateObj.toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+      });
+      message += `\nScheduled for: ${formattedDate}`;
+    }
+    if (normalizedPriority !== 'medium') {
+      message += `\nPriority: ${normalizedPriority === 'high' && priority.toLowerCase() === 'urgent' ? 'urgent' : normalizedPriority}`;
+    }
+
+    vscode.window.showInformationMessage(`Task created: ${task.title}`);
+    console.log(`[/task] Created task:`, task);
+
+    // TODO: Trigger claudeos-tasks extension to refresh its tree view
+    // This could be done via a VS Code command or event
+
+    return {
+      success: true,
+      message,
+      data: task,
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return {
+      success: false,
+      error: {
+        message: `Failed to create task: ${errorMessage}`,
       },
     };
   }
@@ -454,6 +694,45 @@ const newCommand: SlashCommand = {
   examples: ['/new'],
 };
 
+const taskCommand: SlashCommand = {
+  name: 'task',
+  description: 'Create a task with optional scheduling',
+  category: 'automation',
+  arguments: [
+    {
+      name: 'title',
+      description: 'The task title',
+      type: 'string',
+      required: true,
+    },
+    {
+      name: 'description',
+      description: 'Optional task description',
+      type: 'string',
+      required: false,
+    },
+    {
+      name: 'priority',
+      description: 'Task priority (low, medium, high, urgent)',
+      type: 'string',
+      required: false,
+      default: 'medium',
+    },
+    {
+      name: 'doAt',
+      description: 'When to do the task (e.g., "in 5 minutes", "tomorrow at 3pm", "next Monday")',
+      type: 'string',
+      required: false,
+    },
+  ],
+  examples: [
+    '/task title="Review PR #123" priority=high',
+    '/task title="Daily standup" doAt="tomorrow at 9am"',
+    '/task title="Fix bug in login" description="Users can\'t login with SSO" priority=urgent doAt="in 30 minutes"',
+    '/task title="Weekly team meeting" doAt="next Monday at 10am"',
+  ],
+};
+
 /* ------------------------------------------------------------------ */
 /*  Command Registry Integration                                      */
 /* ------------------------------------------------------------------ */
@@ -470,6 +749,7 @@ export const BUILTIN_COMMANDS: CommandRegistration[] = [
   { command: helpCommand, handler: helpHandler },
   { command: clearCommand, handler: clearHandler },
   { command: newCommand, handler: newHandler },
+  { command: taskCommand, handler: taskHandler },
 ];
 
 /**

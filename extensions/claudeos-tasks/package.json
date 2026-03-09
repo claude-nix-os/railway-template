@@ -1,0 +1,233 @@
+{
+  "name": "claudeos-tasks",
+  "displayName": "ClaudeOS Tasks",
+  "description": "Task management tree view with priorities and scheduling for ClaudeOS",
+  "version": "0.1.0",
+  "publisher": "claudeos",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "views": {
+      "claudeos-chat-container": [
+        {
+          "id": "claudeos.taskList",
+          "name": "Tasks",
+          "contextualTitle": "ClaudeOS Tasks"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "claudeos.createTask",
+        "title": "Create Task",
+        "category": "ClaudeOS Tasks",
+        "icon": "$(add)"
+      },
+      {
+        "command": "claudeos.editTask",
+        "title": "Edit Task",
+        "category": "ClaudeOS Tasks",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "claudeos.deleteTask",
+        "title": "Delete Task",
+        "category": "ClaudeOS Tasks",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "claudeos.completeTask",
+        "title": "Complete Task",
+        "category": "ClaudeOS Tasks",
+        "icon": "$(check)"
+      },
+      {
+        "command": "claudeos.uncompleteTask",
+        "title": "Mark as Incomplete",
+        "category": "ClaudeOS Tasks",
+        "icon": "$(circle-outline)"
+      },
+      {
+        "command": "claudeos.setPriority",
+        "title": "Set Priority",
+        "category": "ClaudeOS Tasks",
+        "icon": "$(symbol-numeric)"
+      },
+      {
+        "command": "claudeos.scheduleTask",
+        "title": "Schedule Task",
+        "category": "ClaudeOS Tasks",
+        "icon": "$(calendar)"
+      },
+      {
+        "command": "claudeos.executeTaskNow",
+        "title": "Execute Task Now",
+        "category": "ClaudeOS Tasks",
+        "icon": "$(play)"
+      },
+      {
+        "command": "claudeos.viewTaskDetails",
+        "title": "View Task Details",
+        "category": "ClaudeOS Tasks",
+        "icon": "$(info)"
+      },
+      {
+        "command": "claudeos.refreshTasks",
+        "title": "Refresh Tasks",
+        "category": "ClaudeOS Tasks",
+        "icon": "$(refresh)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "claudeos.createTask",
+          "when": "view == claudeos.taskList",
+          "group": "navigation@1"
+        },
+        {
+          "command": "claudeos.refreshTasks",
+          "when": "view == claudeos.taskList",
+          "group": "navigation@2"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "claudeos.completeTask",
+          "when": "view == claudeos.taskList && viewItem =~ /^task\\.incomplete/",
+          "group": "inline@1"
+        },
+        {
+          "command": "claudeos.uncompleteTask",
+          "when": "view == claudeos.taskList && viewItem =~ /^task\\.complete/",
+          "group": "inline@1"
+        },
+        {
+          "command": "claudeos.editTask",
+          "when": "view == claudeos.taskList && viewItem =~ /^task/",
+          "group": "1_modify@1"
+        },
+        {
+          "command": "claudeos.setPriority",
+          "when": "view == claudeos.taskList && viewItem =~ /^task/",
+          "group": "1_modify@2"
+        },
+        {
+          "command": "claudeos.scheduleTask",
+          "when": "view == claudeos.taskList && viewItem =~ /^task/",
+          "group": "1_modify@3"
+        },
+        {
+          "command": "claudeos.executeTaskNow",
+          "when": "view == claudeos.taskList && viewItem =~ /^task/",
+          "group": "1_modify@4"
+        },
+        {
+          "command": "claudeos.viewTaskDetails",
+          "when": "view == claudeos.taskList && viewItem =~ /^task/",
+          "group": "1_modify@5"
+        },
+        {
+          "command": "claudeos.deleteTask",
+          "when": "view == claudeos.taskList && viewItem =~ /^task/",
+          "group": "2_manage@1"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "claudeos.createTask",
+        "key": "ctrl+shift+t ctrl+n",
+        "mac": "cmd+shift+t cmd+n",
+        "when": "view == claudeos.taskList"
+      },
+      {
+        "command": "claudeos.scheduleTask",
+        "key": "ctrl+shift+t ctrl+s",
+        "mac": "cmd+shift+t cmd+s",
+        "when": "view == claudeos.taskList"
+      },
+      {
+        "command": "claudeos.executeTaskNow",
+        "key": "ctrl+shift+t ctrl+e",
+        "mac": "cmd+shift+t cmd+e",
+        "when": "view == claudeos.taskList"
+      }
+    ],
+    "configuration": {
+      "title": "ClaudeOS Tasks",
+      "properties": {
+        "claudeos.tasks.dataPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the task data file. Leave empty to use default workspace storage."
+        },
+        "claudeos.tasks.defaultPriority": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "urgent"],
+          "default": "medium",
+          "description": "Default priority for new tasks"
+        },
+        "claudeos.tasks.showCompletedTasks": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show completed tasks in the task list"
+        },
+        "claudeos.tasks.groupBy": {
+          "type": "string",
+          "enum": ["none", "priority", "status", "target"],
+          "default": "priority",
+          "description": "How to group tasks in the tree view"
+        },
+        "claudeos.tasks.sortBy": {
+          "type": "string",
+          "enum": ["priority", "dueDate", "createdDate", "name"],
+          "default": "priority",
+          "description": "How to sort tasks within groups"
+        },
+        "claudeos.tasks.autoSchedule": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically suggest scheduling for new tasks"
+        },
+        "claudeos.tasks.apiUrl": {
+          "type": "string",
+          "default": "http://localhost:3000/api",
+          "description": "URL for the ClaudeOS kernel API"
+        },
+        "claudeos.tasks.wsUrl": {
+          "type": "string",
+          "default": "ws://localhost:3000/ws",
+          "description": "WebSocket URL for the ClaudeOS kernel"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "node esbuild.js",
+    "build": "node esbuild.js",
+    "watch": "node esbuild.js --watch",
+    "package": "vsce package",
+    "lint": "eslint src --ext ts"
+  },
+  "dependencies": {
+    "ws": "^8.18.0",
+    "nanoid": "^5.1.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "@types/ws": "^8.5.10",
+    "esbuild": "^0.24.0",
+    "typescript": "^5.7.0"
+  }
+}
