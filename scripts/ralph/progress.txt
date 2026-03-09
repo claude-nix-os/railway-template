@@ -538,3 +538,100 @@ Started: 2026-03-09 13:10 CDT
 
 ---
 
+
+## 2026-03-09 15:45 CST - US-009
+**Implemented:** Implement internal task/todo system with scheduled execution
+
+**What was built:**
+- Complete VS Code extension (claudeos-tasks) with 4,859 lines of code across 29 files
+- Task tree view with execution status grouping (Overdue, Scheduled, In Progress, Failed, Completed, Pending)
+- TaskScheduler service with automatic task execution using Node.js timers
+- Integration with kernel API for spawning Claude Code sessions (new, existing, or custom agent)
+- /task slash command in chat panel for creating tasks from conversations
+- Natural language time parsing ("in 5 minutes", "tomorrow at 9am", "next Monday")
+- Task persistence to JSON file with full CRUD operations
+- Interactive scheduling UI with quick time presets
+- Context menus and keyboard shortcuts for all task operations
+- Real-time task status updates and execution tracking
+
+**Subagents used:**
+1. **Explore agent** - Analyzed existing task API in module-file-explorer, session management in kernel, WebSocket patterns
+2. **General-purpose agent** - Created extension scaffold (package.json, tsconfig, esbuild, types, resources)
+3. **General-purpose agent** - Implemented TaskScheduler service with EventEmitter, timer management, session spawning
+4. **General-purpose agent** - Enhanced Task types with scheduling fields (doAt, doBy, executionTarget, executionStatus)
+5. **General-purpose agent** - Built enhanced task tree view with execution status icons and grouping
+6. **General-purpose agent** - Added /task slash command to claudeos-chat with natural language time parser
+7. **General-purpose agent** - Wired up TaskScheduler integration with extension lifecycle and commands
+
+**Files created:**
+- `extensions/claudeos-tasks/` - Complete VS Code extension directory
+  - Extension scaffold: package.json, tsconfig.json, esbuild.js, .vscodeignore, .gitignore
+  - Documentation: README.md, STRUCTURE.md, QUICKSTART.md, src/services/README.md
+  - Resources: resources/tasks-icon.svg (checklist icon for activity bar)
+  - Core source files:
+    - src/extension.ts - Extension activation with TaskScheduler initialization (71 lines)
+    - src/types.ts - Comprehensive TypeScript types (199 lines)
+    - src/commands/taskCommands.ts - All command implementations (368 lines)
+    - src/services/TaskDataService.ts - JSON persistence service (266 lines)
+    - src/services/TaskScheduler.ts - Automated scheduling service (612 lines)
+    - src/taskTree/TaskTreeProvider.ts - Tree view with execution grouping (291 lines)
+    - src/taskTree/TaskTreeItem.ts - Tree items with status icons (182 lines)
+    - src/taskTree/GroupTreeItem.ts - Collapsible section headers (22 lines)
+
+**Files modified:**
+- `extensions/claudeos-chat/src/commands/builtinCommands.ts` - Added /task command with natural language time parsing
+- `extensions/claudeos-chat/README.md` - Documented all slash commands including /task
+- `Dockerfile` - Added claudeos-tasks extension build step
+- `scripts/init-openvscode.sh` - Added claudeos-tasks extension installation
+- `scripts/ralph/prd.json` - Marked US-009 as passing
+
+**Learnings for future iterations:**
+- **Task scheduling architecture**: TaskScheduler maintains Map of setTimeout timers, reschedules on app restart
+- **Natural language time parsing**: Regex-based parser converts "tomorrow at 9am" to ISO 8601 timestamps
+- **Session spawning flow**: HTTP POST to /api/sessions, then WebSocket connection for sending task content
+- **Execution targets**: Three modes - new session (creates fresh), existing session (uses targetSessionId), custom agent (sends customAgentPrompt)
+- **Execution lifecycle**: pending → scheduled → executing → executed/failed with status updates at each stage
+- **Timer cleanup pattern**: clearTimeout on task update/delete, proper disposal on extension deactivation
+- **Periodic backup check**: 60-second interval catches missed tasks due to timer drift or system sleep
+- **Tree view grouping**: getExecutionGroupedItems() creates sections based on executionStatus and doAt
+- **VS Code integration**: Status bar shows task count, keyboard shortcuts (Ctrl+Shift+T Ctrl+N for new task)
+- **EventEmitter pattern**: taskScheduled, taskExecuted, taskFailed events trigger tree view refresh
+- **Command registration**: Pass taskScheduler instance to command handlers for direct scheduler access
+- **Build system**: Standard esbuild configuration, compiles to dist/extension.js
+- **Type safety**: Full TypeScript types with discriminated unions for ExecutionTarget, ExecutionStatus
+- **Context menus**: Conditional menu items based on contextValue (task.scheduled, task.overdue)
+- **Notification UX**: Shows "Task Executed" notification with "Open Session" button on successful execution
+- **Error handling**: Updates executionError field and shows error notification on failed execution
+- **Integration with existing API**: Leverages existing /api/tasks endpoint from module-file-explorer
+
+**Task scheduler features:**
+- **Automatic scheduling**: Monitors tasks with doAt timestamps, schedules with setTimeout
+- **Session creation**: Integrates with kernel /api/sessions endpoint
+- **WebSocket communication**: Sends task content to Claude Code via authenticated WebSocket
+- **Multiple execution targets**: New session, existing session (by ID), or custom agent (with prompt)
+- **Status tracking**: Updates executionStatus through entire lifecycle
+- **Error recovery**: Handles authentication failures, network errors, missing sessions
+- **Persistent scheduling**: Loads pending tasks from disk on startup and reschedules
+- **Grace period**: 5-second grace period before execution, 30-second WebSocket timeout
+- **Event emission**: Typed events for taskScheduled, taskExecuted, taskFailed, taskCancelled
+
+**Statistics:**
+- Total lines of code: 4,859 lines across 29 files
+- Extension code: 1,820 lines of TypeScript
+- Documentation: 3,039 lines (README, STRUCTURE, QUICKSTART, services/README, chat README update)
+- Commands registered: 8 commands (create, edit, delete, complete, uncomplete, setPriority, schedule, executeNow, viewDetails)
+- Keyboard shortcuts: 3 bindings (create, schedule, execute)
+- Task types: 5 task statuses, 4 priorities, 7 targets
+- Execution statuses: 5 states (pending, scheduled, executing, executed, failed)
+
+**Next steps:**
+- US-010: Implement passkey authentication for Railway deployment
+- US-011: Add Playwright stealth browser to Docker container (already done)
+- US-012: Deploy complete v4 to Railway with all services
+- Need to verify task scheduling works correctly in production after Railway deployment
+- Consider adding task templates for common workflows
+- May want to add task dependencies (task A must complete before task B)
+- Consider adding recurring tasks (daily, weekly, monthly schedules)
+
+---
+

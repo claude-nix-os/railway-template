@@ -127,7 +127,7 @@
         "Task status tracking (pending, in-progress, completed, failed)",
         "/task slash command creates tasks from chat"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "US-010",
