@@ -1,94 +1,45 @@
 #!/bin/bash
 # Initialize OpenVSCode Server with ClaudeOS branding
+# NOTE: Do NOT use set -e — extension installation is best-effort
 
-set -e
+echo "[ClaudeOS] Starting OpenVSCode Server initialization..."
 
-# Create user data directory if it doesn't exist
+# Create data directories
 mkdir -p /data/.openvscode/User
 mkdir -p /data/.openvscode/extensions
+mkdir -p /data/workspace
+mkdir -p /data/browser-sessions
+mkdir -p /data/n8n
+mkdir -p /data/memories
 
 # Copy ClaudeOS settings to OpenVSCode Server user settings
 if [ -f /app/config/vscode-settings.json ]; then
-  echo "[ClaudeOS] Applying ClaudeOS branding settings to OpenVSCode Server..."
+  echo "[ClaudeOS] Applying ClaudeOS branding settings..."
   cp /app/config/vscode-settings.json /data/.openvscode/User/settings.json
-  echo "[ClaudeOS] Settings applied successfully"
 else
-  echo "[ClaudeOS] Warning: vscode-settings.json not found at /app/config/vscode-settings.json"
+  echo "[ClaudeOS] Warning: vscode-settings.json not found"
 fi
+
+# Install extensions by symlinking into the extensions directory
+# This is more reliable than --install-extension which expects .vsix files
+EXTENSIONS_DIR="/data/.openvscode/extensions"
+
+for ext_dir in /app/extensions/claudeos-*; do
+  if [ -d "$ext_dir" ]; then
+    ext_name=$(basename "$ext_dir")
+    target="$EXTENSIONS_DIR/$ext_name"
+
+    # Remove existing symlink/directory if present
+    rm -rf "$target" 2>/dev/null
+
+    # Symlink the extension
+    ln -sf "$ext_dir" "$target"
+    echo "[ClaudeOS] Installed extension: $ext_name"
+  fi
+done
 
 # Ensure proper permissions
-chmod -R 755 /data/.openvscode
-
-# Install ClaudeOS Chat extension
-if [ -d /app/extensions/claudeos-chat ]; then
-  echo "[ClaudeOS] Installing ClaudeOS Chat extension..."
-  /opt/openvscode-server/bin/openvscode-server --install-extension /app/extensions/claudeos-chat --extensions-dir /data/.openvscode/extensions
-  echo "[ClaudeOS] ClaudeOS Chat extension installed successfully"
-else
-  echo "[ClaudeOS] Warning: ClaudeOS Chat extension not found at /app/extensions/claudeos-chat"
-fi
-
-# Install ClaudeOS Sessions extension
-if [ -d /app/extensions/claudeos-sessions ]; then
-  echo "[ClaudeOS] Installing ClaudeOS Sessions extension..."
-  /opt/openvscode-server/bin/openvscode-server --install-extension /app/extensions/claudeos-sessions --extensions-dir /data/.openvscode/extensions
-  echo "[ClaudeOS] ClaudeOS Sessions extension installed successfully"
-else
-  echo "[ClaudeOS] Warning: ClaudeOS Sessions extension not found at /app/extensions/claudeos-sessions"
-fi
-
-# Install ClaudeOS Memory extension
-if [ -d /app/extensions/claudeos-memory ]; then
-  echo "[ClaudeOS] Installing ClaudeOS Memory extension..."
-  /opt/openvscode-server/bin/openvscode-server --install-extension /app/extensions/claudeos-memory --extensions-dir /data/.openvscode/extensions
-  echo "[ClaudeOS] ClaudeOS Memory extension installed successfully"
-else
-  echo "[ClaudeOS] Warning: ClaudeOS Memory extension not found at /app/extensions/claudeos-memory"
-fi
-
-# Install ClaudeOS n8n extension
-if [ -d /app/extensions/claudeos-n8n ]; then
-  echo "[ClaudeOS] Installing ClaudeOS n8n extension..."
-  /opt/openvscode-server/bin/openvscode-server --install-extension /app/extensions/claudeos-n8n --extensions-dir /data/.openvscode/extensions
-  echo "[ClaudeOS] ClaudeOS n8n extension installed successfully"
-else
-  echo "[ClaudeOS] Warning: ClaudeOS n8n extension not found at /app/extensions/claudeos-n8n"
-fi
-
-# Install ClaudeOS Browser Sessions extension
-if [ -d /app/extensions/claudeos-browser-sessions ]; then
-  echo "[ClaudeOS] Installing ClaudeOS Browser Sessions extension..."
-  /opt/openvscode-server/bin/openvscode-server --install-extension /app/extensions/claudeos-browser-sessions --extensions-dir /data/.openvscode/extensions
-  echo "[ClaudeOS] ClaudeOS Browser Sessions extension installed successfully"
-else
-  echo "[ClaudeOS] Warning: ClaudeOS Browser Sessions extension not found at /app/extensions/claudeos-browser-sessions"
-fi
-
-# Install ClaudeOS Settings extension
-if [ -d /app/extensions/claudeos-settings ]; then
-  echo "[ClaudeOS] Installing ClaudeOS Settings extension..."
-  /opt/openvscode-server/bin/openvscode-server --install-extension /app/extensions/claudeos-settings --extensions-dir /data/.openvscode/extensions
-  echo "[ClaudeOS] ClaudeOS Settings extension installed successfully"
-else
-  echo "[ClaudeOS] Warning: ClaudeOS Settings extension not found at /app/extensions/claudeos-settings"
-fi
-
-# Install ClaudeOS Tasks extension
-if [ -d /app/extensions/claudeos-tasks ]; then
-  echo "[ClaudeOS] Installing ClaudeOS Tasks extension..."
-  /opt/openvscode-server/bin/openvscode-server --install-extension /app/extensions/claudeos-tasks --extensions-dir /data/.openvscode/extensions
-  echo "[ClaudeOS] ClaudeOS Tasks extension installed successfully"
-else
-  echo "[ClaudeOS] Warning: ClaudeOS Tasks extension not found at /app/extensions/claudeos-tasks"
-fi
-
-# Create browser sessions data directory
-mkdir -p /data/browser-sessions
-
-# Create n8n data directory
-mkdir -p /data/n8n
-
-# Create memories directory for Mem0
-mkdir -p /data/memories
+chmod -R 755 /data/.openvscode 2>/dev/null || true
 
 echo "[ClaudeOS] OpenVSCode Server initialization complete"
+echo "[ClaudeOS] Extensions installed: $(ls -1 $EXTENSIONS_DIR | wc -l)"

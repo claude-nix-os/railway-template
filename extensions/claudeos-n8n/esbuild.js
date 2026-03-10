@@ -17,17 +17,20 @@ const extensionCtx = esbuild.context({
   logLevel: 'info',
 });
 
-// Build webview
-const webviewCtx = esbuild.context({
-  entryPoints: ['src/webview/main.ts'],
-  bundle: true,
-  outfile: 'dist/webview.js',
-  format: 'iife',
-  platform: 'browser',
-  sourcemap: true,
-  minify: !watch,
-  logLevel: 'info',
-});
+// Conditionally build webview only if source exists
+const hasWebview = fs.existsSync(path.join(__dirname, 'src', 'webview', 'main.ts'));
+const webviewCtx = hasWebview
+  ? esbuild.context({
+      entryPoints: ['src/webview/main.ts'],
+      bundle: true,
+      outfile: 'dist/webview.js',
+      format: 'iife',
+      platform: 'browser',
+      sourcemap: true,
+      minify: !watch,
+      logLevel: 'info',
+    })
+  : Promise.resolve(null);
 
 // Copy webview CSS
 function copyWebviewCss() {
@@ -35,7 +38,6 @@ function copyWebviewCss() {
   const dest = path.join(__dirname, 'dist', 'webview.css');
   const distDir = path.join(__dirname, 'dist');
 
-  // Ensure dist directory exists
   if (!fs.existsSync(distDir)) {
     fs.mkdirSync(distDir, { recursive: true });
   }
@@ -48,28 +50,17 @@ function copyWebviewCss() {
 
 Promise.all([extensionCtx, webviewCtx])
   .then(async ([extCtx, webCtx]) => {
-    // Copy CSS
     copyWebviewCss();
 
     if (watch) {
       console.log('Watching for changes...');
       await extCtx.watch();
-      await webCtx.watch();
-
-      // Watch CSS file manually
-      const cssPath = path.join(__dirname, 'src', 'webview', 'styles.css');
-      if (fs.existsSync(cssPath)) {
-        fs.watch(cssPath, (eventType) => {
-          if (eventType === 'change') {
-            copyWebviewCss();
-          }
-        });
-      }
+      if (webCtx) await webCtx.watch();
     } else {
       await extCtx.rebuild();
-      await webCtx.rebuild();
+      if (webCtx) await webCtx.rebuild();
       await extCtx.dispose();
-      await webCtx.dispose();
+      if (webCtx) await webCtx.dispose();
       console.log('Build complete');
     }
   })

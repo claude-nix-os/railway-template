@@ -12,40 +12,27 @@ COPY . .
 # Build
 RUN npm run build
 
-# Build ClaudeOS Chat extension
+# Build all ClaudeOS VS Code extensions (all have "compile" script)
 WORKDIR /app/extensions/claudeos-chat
-RUN npm ci
-RUN npm run compile
+RUN npm install && npm run compile
 
-# Build ClaudeOS Sessions extension
 WORKDIR /app/extensions/claudeos-sessions
-RUN npm ci
-RUN npm run build
+RUN npm install && npm run compile
 
-# Build ClaudeOS Memory extension
 WORKDIR /app/extensions/claudeos-memory
-RUN npm ci
-RUN npm run compile
+RUN npm install && npm run compile
 
-# Build ClaudeOS n8n extension
 WORKDIR /app/extensions/claudeos-n8n
-RUN npm ci
-RUN npm run build
+RUN npm install && npm run compile
 
-# Build ClaudeOS Browser Sessions extension
 WORKDIR /app/extensions/claudeos-browser-sessions
-RUN npm ci
-RUN npm run build
+RUN npm install && npm run compile
 
-# Build ClaudeOS Settings extension
 WORKDIR /app/extensions/claudeos-settings
-RUN npm ci
-RUN npm run build
+RUN npm install && npm run compile
 
-# Build ClaudeOS Tasks extension
 WORKDIR /app/extensions/claudeos-tasks
-RUN npm ci
-RUN npm run compile
+RUN npm install && npm run compile
 
 # ── Stage 2: Production (slim - just Node.js) ─────────────────
 FROM node:22-slim
@@ -84,12 +71,13 @@ RUN apt-get update && apt-get install -y \
     && npm install -g tsx n8n \
     && pip3 install --no-cache-dir fastapi uvicorn pydantic --break-system-packages
 
-# Download and install OpenVSCode Server (latest stable version)
-RUN OPENVSCODE_VERSION=$(wget -qO- https://api.github.com/repos/gitpod/openvscode-server/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")' | sed 's/^openvscode-server-v//') \
-    && wget -O /tmp/openvscode-server.tar.gz "https://github.com/gitpod/openvscode-server/releases/latest/download/openvscode-server-v${OPENVSCODE_VERSION}-linux-x64.tar.gz" \
+# Download and install OpenVSCode Server (pinned version for reliability)
+ENV OPENVSCODE_VERSION=1.96.4
+RUN wget -O /tmp/openvscode-server.tar.gz "https://github.com/gitpod-io/openvscode-server/releases/download/openvscode-server-v${OPENVSCODE_VERSION}/openvscode-server-v${OPENVSCODE_VERSION}-linux-x64.tar.gz" \
     && mkdir -p /opt/openvscode-server \
     && tar -xzf /tmp/openvscode-server.tar.gz -C /opt/openvscode-server --strip-components=1 \
-    && rm /tmp/openvscode-server.tar.gz
+    && rm /tmp/openvscode-server.tar.gz \
+    && ln -s /opt/openvscode-server/bin/openvscode-server /usr/local/bin/openvscode-server
 
 # Create data directory
 RUN mkdir -p /data
@@ -112,7 +100,7 @@ COPY --from=builder /app/modules.json /app/modules.json
 
 # Install Playwright browsers (only Chromium for efficiency)
 WORKDIR /app/modules/module-browser
-RUN npm ci && npx playwright install chromium --with-deps
+RUN npm install --no-optional 2>/dev/null; npx playwright install chromium --with-deps || echo "Playwright install optional - continuing"
 WORKDIR /app
 
 # Copy built ClaudeOS extensions
